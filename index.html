@@ -5,6 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reddit 内容智能分析与发布评估工具</title>
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    // ============ 全局错误捕获（脚本加载错误立刻显示）============
+    window._loadErrors = [];
+    window.onerror = function(msg, url, line, col, err) {
+      var txt = '错误: ' + msg + (url ? ' (' + url.split('/').pop() + ':' + line + ')' : '');
+      window._loadErrors.push(txt);
+      console.error(txt, err);
+      var box = document.getElementById('access-debug');
+      if (box) { box.style.display = 'block'; box.textContent = '⚠️ 加载异常：' + txt; }
+    };
+    window.addEventListener('error', function(e) {
+      // 静态资源加载失败
+      if (e.target && e.target.tagName && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+        var name = (e.target.src || e.target.href || '').split('/').pop() || '未知文件';
+        var msg = '资源加载失败: ' + name + '（请确认文件路径是否完整存在）';
+        window._loadErrors.push(msg);
+        var box = document.getElementById('access-debug');
+        if (box) { box.style.display = 'block'; box.textContent = '⚠️ ' + msg; }
+        // 用alert兜底，保证用户看到
+        setTimeout(function() { alert('⚠️ ' + msg + '\n\n请确认所有 js/*.js、styles.css 文件都在正确的目录下。'); }, 100);
+      }
+    }, true);
+  </script>
 </head>
 <body>
   <!-- ============ 访问码登录 ============ -->
@@ -12,11 +35,16 @@
     <div class="access-login-card">
       <h2>🔒 Reddit 内容分析工具</h2>
       <p>请输入访问码以继续使用</p>
-      <input type="password" id="access-code-input" class="input" placeholder="请输入访问码" />
+      <input type="password" id="access-code-input" class="input" placeholder="请输入访问码（默认 reddit2026）" />
       <button id="access-code-submit" class="btn btn-primary">进入</button>
       <p style="margin-top:16px;font-size:12px;color:var(--text-subtle);">
-        首次使用请输入：<strong>reddit2026</strong><br/>登录后可在右上角「访问设置」中修改
+        首次使用请输入：<strong style="color:var(--text);user-select:all;cursor:pointer;" onclick="document.getElementById('access-code-input').value='reddit2026'">reddit2026</strong>（点我自动填入）<br/>
+        登录后可在右上角「访问设置」中修改
       </p>
+      <p style="margin-top:12px;">
+        <a href="#" id="reset-access-code" style="font-size:12px;color:var(--text-muted);text-decoration:underline;">访问码忘了？点击这里重置为默认码</a>
+      </p>
+      <div id="access-debug" style="margin-top:12px;padding:8px;background:#fef2f2;color:#991b1b;border-radius:4px;font-size:12px;display:none;"></div>
     </div>
   </div>
 
@@ -48,8 +76,8 @@
         <button id="btn-brand-config" class="btn btn-ghost" title="配置品牌词">品牌词</button>
         <button id="btn-access-settings" class="btn btn-ghost" title="访问设置">访问设置</button>
         <button id="btn-rerun" class="btn btn-ghost" title="按当前时间范围重新分析">重新分析</button>
-        <button id="btn-reset" class="btn btn-ghost-danger" title="清空所有数据">重置</button>
-        <button id="btn-load-demo" class="btn btn-primary" title="载入演示数据">载入模拟数据</button>
+        <button id="btn-reset" class="btn btn-ghost-danger" title="清空所有数据">清空</button>
+
       </div>
     </div>
     <nav class="nav-tabs">
@@ -81,7 +109,6 @@
         </div>
         <div class="page-actions">
           <button class="btn btn-secondary" id="btn-import-posts">批量导入帖子</button>
-          <button class="btn btn-secondary" id="btn-import-comments">导入评论</button>
           <button class="btn btn-primary" id="btn-add-post">+ 录入帖子</button>
         </div>
       </div>
