@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reddit 内容智能分析与发布评估工具</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ============ 访问码登录 ============ -->
+  <div id="access-login" class="access-login">
+    <div class="access-login-card">
+      <h2>🔒 Reddit 内容分析工具</h2>
+      <p>请输入访问码以继续使用</p>
+      <input type="password" id="access-code-input" class="input" placeholder="请输入访问码" />
+      <button id="access-code-submit" class="btn btn-primary">进入</button>
+      <p style="margin-top:16px;font-size:12px;color:var(--text-subtle);">
+        首次使用请输入：<strong>reddit2026</strong><br/>登录后可在右上角「访问设置」中修改
+      </p>
+    </div>
+  </div>
+
+  <!-- ============ 顶部栏 ============ -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-logo">R</span>
+        <div class="brand-text">
+          <h1>Reddit 内容智能分析与发布评估</h1>
+          <p class="brand-sub">历史内容 → 内容分析 → 评论分析 → 内容规律 → 发布前评估</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span id="data-badge" class="data-badge">数据状态</span>
+        <div class="time-filter">
+          <span class="time-filter-label">时间:</span>
+          <select id="time-range" class="input select select-sm">
+            <option value="all">全部</option>
+            <option value="week">本周</option>
+            <option value="month" selected>本月</option>
+            <option value="last30">近30天</option>
+            <option value="custom">自定义</option>
+          </select>
+          <input type="date" id="time-start" class="input input-sm" style="display:none;" />
+          <input type="date" id="time-end" class="input input-sm" style="display:none;" />
+          <span id="time-range-desc" class="time-filter-desc"></span>
+        </div>
+        <button id="btn-brand-config" class="btn btn-ghost" title="配置品牌词">品牌词</button>
+        <button id="btn-access-settings" class="btn btn-ghost" title="访问设置">访问设置</button>
+        <button id="btn-rerun" class="btn btn-ghost" title="按当前时间范围重新分析">重新分析</button>
+        <button id="btn-reset" class="btn btn-ghost-danger" title="清空所有数据">重置</button>
+        <button id="btn-load-demo" class="btn btn-primary" title="载入演示数据">载入模拟数据</button>
+      </div>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-page="history">
+        <span class="nav-tab-num">1</span> 历史内容
+      </button>
+      <button class="nav-tab" data-page="analysis">
+        <span class="nav-tab-num">2</span> 内容分析
+      </button>
+      <button class="nav-tab" data-page="patterns">
+        <span class="nav-tab-num">3</span> 内容规律
+      </button>
+      <button class="nav-tab" data-page="subreddit">
+        <span class="nav-tab-num">4</span> 社区分析
+      </button>
+      <button class="nav-tab" data-page="evaluate">
+        <span class="nav-tab-num">5</span> 发布前评估
+      </button>
+    </nav>
+  </header>
+
+  <main class="main">
+    <!-- ============ 页面 1: 历史内容 ============ -->
+    <section id="page-history" class="page active">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">历史内容</h2>
+          <p class="page-desc">批量导入 Reddit 内容、表现数据和评论。同一帖子只需录入一次，后续可在原 Post ID 下追加 Score / Comments / Views / 新评论。</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" id="btn-import-posts">批量导入帖子</button>
+          <button class="btn btn-secondary" id="btn-import-comments">导入评论</button>
+          <button class="btn btn-primary" id="btn-add-post">+ 录入帖子</button>
+        </div>
+      </div>
+
+      <!-- 数据概览 + 可复用经验 + 待办动作 -->
+      <div id="dashboard-overview" class="dashboard-overview"></div>
+
+      <div class="stats-row" id="stats-row"></div>
+
+      <div class="filter-bar">
+        <input type="text" id="filter-title" class="input" placeholder="按标题关键词筛选…" />
+        <select id="filter-subreddit" class="input select"><option value="">全部 Subreddit</option></select>
+        <select id="filter-level" class="input select">
+          <option value="">全部表现</option>
+          <option value="high">高表现</option>
+          <option value="medium">中表现</option>
+          <option value="low">低表现</option>
+        </select>
+        <select id="sort-by" class="input select">
+          <option value="postedAt-desc">最新发布</option>
+          <option value="score-desc">Score 高→低</option>
+          <option value="comments-desc">评论数高→低</option>
+          <option value="views-desc">浏览量高→低</option>
+        </select>
+      </div>
+
+      <div id="posts-list" class="posts-list"></div>
+    </section>
+
+    <!-- ============ 页面 2: 内容分析 ============ -->
+    <section id="page-analysis" class="page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">内容分析</h2>
+          <p class="page-desc">查看单条帖子表现分析、用户评论分析、用户需求与内容机会。所有结论标注数据层级（DATA / ANALYSIS / PATTERN / INFERENCE）。</p>
+        </div>
+      </div>
+
+      <div id="analysis-container" class="analysis-container">
+        <div class="empty-state" id="analysis-empty">
+          <div class="empty-icon">📊</div>
+          <h3>选择一条历史帖子查看分析</h3>
+          <p>从下方列表选择，或前往「历史内容」页面录入新内容后自动分析。</p>
+          <div id="analysis-post-picker" class="post-picker"></div>
+        </div>
+        <div id="analysis-detail" class="analysis-detail" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ============ 页面 3: 内容规律 ============ -->
+    <section id="page-patterns" class="page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">内容规律</h2>
+          <p class="page-desc">基于历史帖子、表现数据和评论分析自动沉淀的规律库。每条规律可追溯到对应历史数据，样本不足时降级为推测。<span class="text-muted">悬停 ⓘ 图标查看指标定义。</span></p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" id="btn-rerun-patterns">重新沉淀规律</button>
+        </div>
+      </div>
+
+      <!-- 数据概览 -->
+      <div id="patterns-overview" class="patterns-overview"></div>
+
+      <div class="filter-bar">
+        <select id="filter-pattern-category" class="input select">
+          <option value="">全部分类</option>
+          <option value="high_performance">高表现规律</option>
+          <option value="low_performance">低表现规律</option>
+          <option value="user_need">用户高频需求</option>
+          <option value="pain_point">用户高频痛点</option>
+          <option value="hot_topic">高互动话题</option>
+          <option value="subreddit_rule">社区规律</option>
+          <option value="marketing_risk">营销风险</option>
+          <option value="topic_opportunity">选题机会</option>
+        </select>
+        <select id="filter-pattern-level" class="input select">
+          <option value="">全部层级</option>
+          <option value="PATTERN">规律</option>
+          <option value="INFERENCE">推测</option>
+        </select>
+      </div>
+
+      <div id="patterns-list" class="patterns-list"></div>
+    </section>
+
+    <!-- ============ 页面 4: Subreddit 分析 ============ -->
+    <section id="page-subreddit" class="page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">社区分析</h2>
+          <p class="page-desc">深入分析指定 Subreddit 的内容偏好、高表现特征、用户画像和社区规律，帮助你了解目标社区的"水土"。</p>
+        </div>
+        <div class="page-actions">
+          <select id="subreddit-selector" class="input select">
+            <option value="">选择 Subreddit</option>
+          </select>
+        </div>
+      </div>
+      <div id="subreddit-content" class="subreddit-content"></div>
+    </section>
+
+    <!-- ============ 页面 5: 发布前评估 ============ -->
+    <section id="page-evaluate" class="page">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">发布前评估</h2>
+          <p class="page-desc">输入准备发布的新 Reddit 内容，系统调用历史内容、表现数据、用户评论和内容规律库进行综合判断。</p>
+        </div>
+      </div>
+
+      <div class="eval-layout">
+        <div class="eval-form-card">
+          <h3 class="card-title">输入待评估内容</h3>
+          <div class="form-group">
+            <label>Subreddit <span class="req">*</span></label>
+            <input type="text" id="eval-subreddit" class="input" placeholder="例如 SaaS / Entrepreneur / sideproject" />
+          </div>
+          <div class="form-group">
+            <label>标题 <span class="req">*</span></label>
+            <input type="text" id="eval-title" class="input" placeholder="准备发布的 Reddit 标题" />
+          </div>
+          <div class="form-group">
+            <label>正文</label>
+            <textarea id="eval-body" class="input textarea" rows="10" placeholder="准备发布的 Reddit 正文…"></textarea>
+          </div>
+          <button class="btn btn-primary btn-block" id="btn-evaluate">运行评估</button>
+          <button class="btn btn-ghost btn-block" id="btn-eval-sample">填入示例内容</button>
+
+          <div class="eval-history">
+            <h4>最近评估记录</h4>
+            <div id="eval-history-list"></div>
+          </div>
+        </div>
+
+        <div class="eval-result-card">
+          <div id="eval-result" class="eval-result">
+            <div class="empty-state">
+              <div class="empty-icon">🎯</div>
+              <h3>评估结果将显示在这里</h3>
+              <p>填写左侧表单后点击「运行评估」，查看综合评分、发布建议和修改建议。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ 模态框：录入/导入 ============ -->
+  <div id="modal-overlay" class="modal-overlay" style="display:none;">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">标题</h3>
+        <button class="modal-close" id="modal-close">×</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============ Toast ============ -->
+  <div id="toast" class="toast" style="display:none;"></div>
+
+  <!-- ============ 脚本 ============ -->
+  <script src="js/demo-data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/analyzer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
