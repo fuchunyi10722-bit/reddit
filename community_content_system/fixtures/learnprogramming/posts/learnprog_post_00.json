@@ -1,0 +1,272 @@
+[
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t3",
+          "data": {
+            "id": "learnprog_post_00",
+            "name": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "title": "When you finally fix a bug after 4 hours and it was a missing semicolon",
+            "selftext": "",
+            "url": "https://i.redd.it/example_meme.jpg",
+            "is_self": false,
+            "post_hint": "image",
+            "domain": "i.redd.it",
+            "link_flair_text": "Meme",
+            "link_flair_template_id": "flair_00",
+            "author": "user_33",
+            "created_utc": 1787686285.651269,
+            "permalink": "/r/learnprogramming/comments/learnprog_post_00/slug/",
+            "ups": 3414,
+            "score": 3414,
+            "upvote_ratio": 0.96,
+            "num_comments": 145,
+            "view_count": null,
+            "is_video": false,
+            "poll_data": null,
+            "url_overridden_by_dest": "https://i.redd.it/example_meme.jpg"
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  },
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0000",
+            "name": "t1_cmt_0000",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_41",
+            "body": "Great explanation, the box-drawing tip actually helped me too.",
+            "score": 46,
+            "created_utc": 1789426401.651269,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0100",
+            "name": "t1_cmt_0100",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_24",
+            "body": "Great explanation, the box-drawing tip actually helped me too.",
+            "score": 48,
+            "created_utc": 1789895556.651269,
+            "depth": 1,
+            "parent_id": "t1_cmt_0000"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0001",
+            "name": "t1_cmt_0001",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_35",
+            "body": "This is why I love this sub. Actual explanations, not just 'google it'.",
+            "score": 35,
+            "created_utc": 1789508836.651269,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0002",
+            "name": "t1_cmt_0002",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_39",
+            "body": "Can you elaborate on ownership? I think I get it but not 100%.",
+            "score": 11,
+            "created_utc": 1789552612.651269,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0102",
+            "name": "t1_cmt_0102",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_24",
+            "body": "Can you elaborate on ownership? I think I get it but not 100%.",
+            "score": 15,
+            "created_utc": 1789218988.651269,
+            "depth": 1,
+            "parent_id": "t1_cmt_0002"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0003",
+            "name": "t1_cmt_0003",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_20",
+            "body": "Tried the swap exercise. Mind blown. Why didn't my professor explain it this way?",
+            "score": 26,
+            "created_utc": 1790004214.651269,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0103",
+            "name": "t1_cmt_0103",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_37",
+            "body": "Tried the swap exercise. Mind blown. Why didn't my professor explain it this way?",
+            "score": 25,
+            "created_utc": 1789975138.651269,
+            "depth": 1,
+            "parent_id": "t1_cmt_0003"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0004",
+            "name": "t1_cmt_0004",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_47",
+            "body": "This is gold. Saving for later.",
+            "score": 8,
+            "created_utc": 1789209290.651269,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0104",
+            "name": "t1_cmt_0104",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_49",
+            "body": "This is gold. Saving for later.",
+            "score": 9,
+            "created_utc": 1789261917.651269,
+            "depth": 1,
+            "parent_id": "t1_cmt_0004"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0005",
+            "name": "t1_cmt_0005",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_09",
+            "body": "Hot take: pointers are easy if you understand memory. The problem is most courses skip memory.",
+            "score": 13,
+            "created_utc": 1789373154.651269,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0006",
+            "name": "t1_cmt_0006",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_36",
+            "body": "Your iterative-to-recursive trick is underrated. Teaching it this way should be standard.",
+            "score": 20,
+            "created_utc": 1789787020.651269,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0007",
+            "name": "t1_cmt_0007",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_39",
+            "body": "Same here. Took me 6 months and it was a drawing on paper that did it.",
+            "score": 18,
+            "created_utc": 1789842866.651269,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0008",
+            "name": "t1_cmt_0008",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_49",
+            "body": "`is None` is basically the only case you need `is` in Python. Everything else, use `==`.",
+            "score": 37,
+            "created_utc": 1789341574.651269,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0108",
+            "name": "t1_cmt_0108",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_20",
+            "body": "`is None` is basically the only case you need `is` in Python. Everything else, use `==`.",
+            "score": 35,
+            "created_utc": 1789360638.651269,
+            "depth": 1,
+            "parent_id": "t1_cmt_0008"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0009",
+            "name": "t1_cmt_0009",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_42",
+            "body": "Also matters for small integers due to interning: `a = 256; b = 256; a is b` is True, but 257 is False. CPython caches -5 to 256.",
+            "score": 40,
+            "created_utc": 1789605571.651269,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  }
+]

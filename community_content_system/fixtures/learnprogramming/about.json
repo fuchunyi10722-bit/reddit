@@ -1,0 +1,11 @@
+{
+  "kind": "t5",
+  "data": {
+    "display_name": "learnprogramming",
+    "subscribers": 3500000,
+    "created_utc": 1292251200,
+    "subreddit_type": "public",
+    "description": "A subreddit for all questions related to programming in any language.",
+    "public_description": "Ask questions about programming."
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "rules": [
+    {
+      "short_name": "No advertising/self-promotion",
+      "description": "Do not post links to your own content for promotional purposes. This includes blogs, YouTube channels, courses, and products. Read the self-promotion rules before posting.",
+      "priority": 1
+    },
+    {
+      "short_name": "No complete solutions",
+      "description": "Do not ask for or post complete solutions. Ask for guidance, not the answer.",
+      "priority": 2
+    },
+    {
+      "short_name": "Be civil and respectful",
+      "description": "Treat others with respect. No harassment or insults.",
+      "priority": 3
+    },
+    {
+      "short_name": "Use clear titles",
+      "description": "Make your title descriptive. 'Help' is not a good title.",
+      "priority": 4
+    },
+    {
+      "short_name": "No off-topic posts",
+      "description": "Posts must be related to learning programming. Job posts belong in r/cscareerquestions.",
+      "priority": 5
+    }
+  ],
+  "description": {
+    "rules_reason": "These rules help keep the community focused on learning."
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "kind": "Listing",
+  "data": {
+    "children": [
+      {
+        "kind": "t3",
+        "data": {
+          "id": "learnprog_post_00",
+          "name": "t3_learnprog_post_00",
+          "subreddit": "learnprogramming",
+          "title": "I kept getting stuck on recursion until I tried this one approach",
+          "selftext": "Everyone says 'think of the base case' but that never worked for me. What worked: writing the iterative version first, then noticing the pattern, then converting.\n\nExample with factorial:\n```python\n# Iterative\ndef fact(n):\n    result = 1\n    for i in range(1, n+1):\n        result *= i\n    return result\n\n# Recursive — notice result accumulates the same way\ndef fact(n):\n    if n <= 1: return 1\n    return n * fact(n-1)\n```\n\nThe key insight: recursion is just a loop where the 'state' (result) is implicitly passed via the call stack instead of an explicit variable.",
+          "url": "",
+          "is_self": true,
+          "post_hint": null,
+          "domain": "self.learnprogramming",
+          "link_flair_text": "Discussion",
+          "link_flair_template_id": "flair_00",
+          "author": "user_22",
+          "created_utc": 1787657461.651269,
+          "permalink": "/r/learnprogramming/comments/learnprog_post_00/slug/",
+          "ups": 1248,
+          "score": 1248,
+          "upvote_ratio": 0.73,
+          "num_comments": 105,
+          "view_count": null,
+          "is_video": false,
+          "poll_data": null,
+          "url_overridden_by_dest": null
+        }
+      }
+    ],
+    "after": null,
+    "before": null
+  }
+}

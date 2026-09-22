@@ -1,0 +1,36 @@
+{
+  "kind": "Listing",
+  "data": {
+    "children": [
+      {
+        "kind": "t3",
+        "data": {
+          "id": "learnprog_post_00",
+          "name": "t3_learnprog_post_00",
+          "subreddit": "learnprogramming",
+          "title": "After 3 months of struggling, I finally understood pointers in C. Here's what clicked.",
+          "selftext": "I kept hitting a wall with pointers. Every tutorial showed memory diagrams but never explained WHY you need a pointer to a pointer. What finally clicked was realizing it's about ownership: when you pass &x to a function, you're saying 'this function can change what x points to.'\n\nThe exercise that made it real: write a function that swaps two integers. Without pointers it's impossible; with pointers you see exactly why indirection matters.\n\nFor anyone struggling: draw boxes. Seriously. Paper and pencil. Draw what's at each address before and after each line of code.",
+          "url": "",
+          "is_self": true,
+          "post_hint": null,
+          "domain": "self.learnprogramming",
+          "link_flair_text": "Discussion",
+          "link_flair_template_id": "flair_00",
+          "author": "user_01",
+          "created_utc": 1786248677.651269,
+          "permalink": "/r/learnprogramming/comments/learnprog_post_00/slug/",
+          "ups": 820,
+          "score": 820,
+          "upvote_ratio": 0.97,
+          "num_comments": 124,
+          "view_count": null,
+          "is_video": false,
+          "poll_data": null,
+          "url_overridden_by_dest": null
+        }
+      }
+    ],
+    "after": null,
+    "before": null
+  }
+}
