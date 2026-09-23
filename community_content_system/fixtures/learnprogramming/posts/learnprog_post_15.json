@@ -1,0 +1,407 @@
+[
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t3",
+          "data": {
+            "id": "learnprog_post_15",
+            "name": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "title": "When should I use a list vs a tuple vs a set in Python?",
+            "selftext": "I always default to lists because they're familiar, but I know tuples and sets exist for reasons. Can someone give me a simple rule of thumb?\n\nFrom what I gather:\n- List: ordered, mutable, allows duplicates\n- Tuple: ordered, immutable, allows duplicates\n- Set: unordered, mutable, no duplicates\n\nBut when does 'immutable' actually matter in practice? And is the set's O(1) lookup worth it for small collections?",
+            "url": "",
+            "is_self": true,
+            "post_hint": null,
+            "domain": "self.learnprogramming",
+            "link_flair_text": "Question",
+            "link_flair_template_id": "flair_15",
+            "author": "user_47",
+            "created_utc": 1786712539.9672086,
+            "permalink": "/r/learnprogramming/comments/learnprog_post_15/slug/",
+            "ups": 403,
+            "score": 403,
+            "upvote_ratio": 0.75,
+            "num_comments": 57,
+            "view_count": null,
+            "is_video": false,
+            "poll_data": null,
+            "url_overridden_by_dest": null
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  },
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0600",
+            "name": "t1_cmt_0600",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_09",
+            "body": "For small collections, the lookup speed difference is negligible. Use whatever is clearer.",
+            "score": 13,
+            "created_utc": 1789583640.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0700",
+            "name": "t1_cmt_0700",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_26",
+            "body": "Memes like this are why I keep coming back lol",
+            "score": 68,
+            "created_utc": 1789551902.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0600"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0601",
+            "name": "t1_cmt_0601",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_43",
+            "body": "Motivation is a myth. Build a habit instead. 30 minutes daily beats 5 hours on weekends.",
+            "score": 44,
+            "created_utc": 1790055684.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0602",
+            "name": "t1_cmt_0602",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_09",
+            "body": "I keep a 'lessons learned' doc per project. When I'm stuck I read it. Reminds me I've solved worse.",
+            "score": 19,
+            "created_utc": 1789659584.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0702",
+            "name": "t1_cmt_0702",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_17",
+            "body": "Because `range` produces values 0-4 and reassigning `i` inside the loop doesn't change what range yields next. The loop variable is reassigned at the top of each iteration.",
+            "score": 38,
+            "created_utc": 1789800455.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0602"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0603",
+            "name": "t1_cmt_0603",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_14",
+            "body": "Take a break. Seriously. Walk away for an hour. The bug often jumps out when you come back.",
+            "score": 39,
+            "created_utc": 1789800987.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0703",
+            "name": "t1_cmt_0703",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_25",
+            "body": "Same confusion when I started. The loop doesn't read your modified `i`.",
+            "score": 8,
+            "created_utc": 1789355170.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0603"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0604",
+            "name": "t1_cmt_0604",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_27",
+            "body": "Pro Git is dense but chapter 1-3 are gold. Skip around — you don't need to read linearly.",
+            "score": 20,
+            "created_utc": 1790057825.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0605",
+            "name": "t1_cmt_0605",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_48",
+            "body": "Learn `git reflog`. It saved me from a force-push disaster once. It's a time machine.",
+            "score": 36,
+            "created_utc": 1790089094.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0606",
+            "name": "t1_cmt_0606",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_23",
+            "body": "I'm 38 and just got my first dev job last month. 18 months of 10 hrs/week. It's doable.",
+            "score": 56,
+            "created_utc": 1789461984.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0706",
+            "name": "t1_cmt_0706",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_42",
+            "body": "Explaining out loud works. I started doing this and caught so many holes in my own understanding.",
+            "score": 25,
+            "created_utc": 1789352839.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0606"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0607",
+            "name": "t1_cmt_0607",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_02",
+            "body": "The honest answer: 10 hrs/week means 3-4 years, not 2. But it's doable. Consistency > hours.",
+            "score": 27,
+            "created_utc": 1789934665.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0608",
+            "name": "t1_cmt_0608",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_40",
+            "body": "Async clicked when I imagined a restaurant: waiters don't stand by the kitchen, they take new orders while food cooks.",
+            "score": 42,
+            "created_utc": 1789893577.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0708",
+            "name": "t1_cmt_0708",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_43",
+            "body": "CLI weather app — this is EXACTLY the kind of project size beginners should start with.",
+            "score": 16,
+            "created_utc": 1789552345.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0608"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0609",
+            "name": "t1_cmt_0609",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_14",
+            "body": "`await` literally means 'pause this function until the result is ready, let other code run meanwhile'.",
+            "score": 31,
+            "created_utc": 1789410267.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0709",
+            "name": "t1_cmt_0709",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_24",
+            "body": "Git commits as checkpoints is underrated advice. Saved me many times when I broke things.",
+            "score": 12,
+            "created_utc": 1789508385.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0609"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0610",
+            "name": "t1_cmt_0610",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_39",
+            "body": "Your post needs way more detail. What's the error? What have you tried? What's your code?",
+            "score": 0,
+            "created_utc": 1789390457.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0710",
+            "name": "t1_cmt_0710",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_11",
+            "body": "The deck of cards example is perfect. I'm going to try this with my students.",
+            "score": 30,
+            "created_utc": 1790030360.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0610"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0611",
+            "name": "t1_cmt_0611",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_38",
+            "body": "Downvoted for the app promo. We have rules against self-promo here.",
+            "score": -11,
+            "created_utc": 1789816599.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0612",
+            "name": "t1_cmt_0612",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_25",
+            "body": "Reported. Read rule 1 — no advertising in this sub.",
+            "score": 5,
+            "created_utc": 1789393962.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0712",
+            "name": "t1_cmt_0712",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_38",
+            "body": "Use a tuple when you want to signal 'this shouldn't change'. Like coordinates or config.",
+            "score": 35,
+            "created_utc": 1789485998.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0612"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0613",
+            "name": "t1_cmt_0613",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_16",
+            "body": "Reading stack traces is THE skill. I wasted hours Googling before I learned to read them.",
+            "score": 49,
+            "created_utc": 1789412650.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0614",
+            "name": "t1_cmt_0614",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_44",
+            "body": "The file:line in a traceback is the most important part. Start there, not the error type.",
+            "score": 24,
+            "created_utc": 1789299052.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_15"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0714",
+            "name": "t1_cmt_0714",
+            "link_id": "t3_learnprog_post_15",
+            "subreddit": "learnprogramming",
+            "author": "user_37",
+            "body": "For small collections, the lookup speed difference is negligible. Use whatever is clearer.",
+            "score": 15,
+            "created_utc": 1790100645.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0614"
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  }
+]

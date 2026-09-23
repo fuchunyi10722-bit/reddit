@@ -1,0 +1,332 @@
+[
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t3",
+          "data": {
+            "id": "learnprog_post_21",
+            "name": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "title": "My new app makes learning Python 10x faster! Free beta access inside",
+            "selftext": "I built an AI-powered Python tutor that adapts to your learning speed. Sign up for the free beta at myapp.example.com. First 100 users get lifetime premium. Use promo code REDDIT10. This will replace traditional courses.",
+            "url": "",
+            "is_self": true,
+            "post_hint": null,
+            "domain": "self.learnprogramming",
+            "link_flair_text": null,
+            "link_flair_template_id": null,
+            "author": "user_24",
+            "created_utc": 1787933518.9672086,
+            "permalink": "/r/learnprogramming/comments/learnprog_post_21/slug/",
+            "ups": -36,
+            "score": -36,
+            "upvote_ratio": 0.83,
+            "num_comments": 10,
+            "view_count": null,
+            "is_video": false,
+            "poll_data": null,
+            "url_overridden_by_dest": null
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  },
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1000",
+            "name": "t1_cmt_1000",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_28",
+            "body": "Motivation is a myth. Build a habit instead. 30 minutes daily beats 5 hours on weekends.",
+            "score": 49,
+            "created_utc": 1789566585.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1100",
+            "name": "t1_cmt_1100",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_45",
+            "body": "Not surprising. Python's growth has been obvious for years.",
+            "score": 11,
+            "created_utc": 1789859633.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_1000"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1001",
+            "name": "t1_cmt_1001",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_20",
+            "body": "I keep a 'lessons learned' doc per project. When I'm stuck I read it. Reminds me I've solved worse.",
+            "score": 15,
+            "created_utc": 1789901973.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1101",
+            "name": "t1_cmt_1101",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_13",
+            "body": "Because `range` produces values 0-4 and reassigning `i` inside the loop doesn't change what range yields next. The loop variable is reassigned at the top of each iteration.",
+            "score": 37,
+            "created_utc": 1790018347.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_1001"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1002",
+            "name": "t1_cmt_1002",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_48",
+            "body": "Take a break. Seriously. Walk away for an hour. The bug often jumps out when you come back.",
+            "score": 40,
+            "created_utc": 1789344496.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1003",
+            "name": "t1_cmt_1003",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_13",
+            "body": "Pro Git is dense but chapter 1-3 are gold. Skip around — you don't need to read linearly.",
+            "score": 19,
+            "created_utc": 1789369226.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1004",
+            "name": "t1_cmt_1004",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_47",
+            "body": "Learn `git reflog`. It saved me from a force-push disaster once. It's a time machine.",
+            "score": 36,
+            "created_utc": 1789346574.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1005",
+            "name": "t1_cmt_1005",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_19",
+            "body": "I'm 38 and just got my first dev job last month. 18 months of 10 hrs/week. It's doable.",
+            "score": 55,
+            "created_utc": 1789940162.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1105",
+            "name": "t1_cmt_1105",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_24",
+            "body": "Explaining out loud works. I started doing this and caught so many holes in my own understanding.",
+            "score": 26,
+            "created_utc": 1789826759.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_1005"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1006",
+            "name": "t1_cmt_1006",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_01",
+            "body": "The honest answer: 10 hrs/week means 3-4 years, not 2. But it's doable. Consistency > hours.",
+            "score": 31,
+            "created_utc": 1789583628.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1106",
+            "name": "t1_cmt_1106",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_03",
+            "body": "Scope creep is real. I abandoned my last 3 projects because of it. Going to try the 'one feature at a time' rule.",
+            "score": 19,
+            "created_utc": 1789563471.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_1006"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1007",
+            "name": "t1_cmt_1007",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_19",
+            "body": "Async clicked when I imagined a restaurant: waiters don't stand by the kitchen, they take new orders while food cooks.",
+            "score": 46,
+            "created_utc": 1790011296.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1008",
+            "name": "t1_cmt_1008",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_49",
+            "body": "`await` literally means 'pause this function until the result is ready, let other code run meanwhile'.",
+            "score": 31,
+            "created_utc": 1790036139.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1009",
+            "name": "t1_cmt_1009",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_37",
+            "body": "Your post needs way more detail. What's the error? What have you tried? What's your code?",
+            "score": -3,
+            "created_utc": 1789651511.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1010",
+            "name": "t1_cmt_1010",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_22",
+            "body": "Downvoted for the app promo. We have rules against self-promo here.",
+            "score": -10,
+            "created_utc": 1790089837.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1110",
+            "name": "t1_cmt_1110",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_31",
+            "body": "Encapsulation finally clicked for me when I realized it's about 'who can change this state'.",
+            "score": 15,
+            "created_utc": 1790075192.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_1010"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1011",
+            "name": "t1_cmt_1011",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_26",
+            "body": "Reported. Read rule 1 — no advertising in this sub.",
+            "score": 5,
+            "created_utc": 1790066029.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1012",
+            "name": "t1_cmt_1012",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_44",
+            "body": "Reading stack traces is THE skill. I wasted hours Googling before I learned to read them.",
+            "score": 49,
+            "created_utc": 1789984612.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_21"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_1112",
+            "name": "t1_cmt_1112",
+            "link_id": "t3_learnprog_post_21",
+            "subreddit": "learnprogramming",
+            "author": "user_37",
+            "body": "Sets are great for deduplication. `list(set(my_list))` to remove duplicates.",
+            "score": 24,
+            "created_utc": 1790054391.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_1012"
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  }
+]

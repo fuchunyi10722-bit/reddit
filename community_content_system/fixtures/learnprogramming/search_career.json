@@ -1,0 +1,117 @@
+{
+  "kind": "Listing",
+  "data": {
+    "children": [
+      {
+        "kind": "t3",
+        "data": {
+          "id": "learnprog_post_00",
+          "name": "t3_learnprog_post_00",
+          "subreddit": "learnprogramming",
+          "title": "How I went from zero to my first junior dev job in 14 months (no CS degree)",
+          "selftext": "Background: 26, working retail, decided to learn to code. Here's what actually mattered and what didn't.\n\nWhat mattered:\n1. Building projects instead of tutorial-hopping. I built a CLI budget tracker first, then a Flask blog, then a React todo with auth.\n2. Actually reading other people's code on GitHub. I'd clone a repo, break it, fix it.\n3. Getting rejected 47 times before the first yes.\n\nWhat didn't matter:\n- Bootcamp certificate (nobody asked)\n- Leetcode grinding (only 2 interviews tested algorithms)\n- Knowing 5 frameworks (they wanted depth in one)\n\nThe job: junior Python/Flask role. They asked me to debug a broken endpoint during the interview. I'd done that exact thing 100 times on my own projects.",
+          "url": "",
+          "is_self": true,
+          "post_hint": null,
+          "domain": "self.learnprogramming",
+          "link_flair_text": "Success Story",
+          "link_flair_template_id": "flair_00",
+          "author": "user_24",
+          "created_utc": 1788724152.9672086,
+          "permalink": "/r/learnprogramming/comments/learnprog_post_00/slug/",
+          "ups": 2119,
+          "score": 2119,
+          "upvote_ratio": 0.86,
+          "num_comments": 271,
+          "view_count": null,
+          "is_video": false,
+          "poll_data": null,
+          "url_overridden_by_dest": null
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "id": "learnprog_post_01",
+          "name": "t3_learnprog_post_01",
+          "subreddit": "learnprogramming",
+          "title": "I'm 35 and starting to learn programming. Is it actually too late?",
+          "selftext": "Everyone says it's never too late but most success stories I read are people in their early 20s. I have a family and a full-time job. I can dedicate maybe 10 hours a week.\n\nIs 10 hours/week enough to become employable in 2-3 years? Or am I setting myself up for disappointment? Honest answers please, not motivational quotes.",
+          "url": "",
+          "is_self": true,
+          "post_hint": null,
+          "domain": "self.learnprogramming",
+          "link_flair_text": "Question",
+          "link_flair_template_id": "flair_01",
+          "author": "user_03",
+          "created_utc": 1788732209.9672086,
+          "permalink": "/r/learnprogramming/comments/learnprog_post_01/slug/",
+          "ups": 525,
+          "score": 525,
+          "upvote_ratio": 0.79,
+          "num_comments": 134,
+          "view_count": null,
+          "is_video": false,
+          "poll_data": null,
+          "url_overridden_by_dest": null
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "id": "learnprog_post_02",
+          "name": "t3_learnprog_post_02",
+          "subreddit": "learnprogramming",
+          "title": "What's your honest take on coding bootcamps in 2024?",
+          "selftext": "Considering a 16-week bootcamp. Cost is $14k. I've done some freeCodeCamp and enjoyed it but feel I need structure and accountability.\n\nFor those who did bootcamps: did the network/structure justify the cost? Or could a disciplined self-taught route with a mentor have worked as well? No bootcamp sales pitches please.",
+          "url": "",
+          "is_self": true,
+          "post_hint": null,
+          "domain": "self.learnprogramming",
+          "link_flair_text": "Discussion",
+          "link_flair_template_id": "flair_02",
+          "author": "user_44",
+          "created_utc": 1789639847.9672086,
+          "permalink": "/r/learnprogramming/comments/learnprog_post_02/slug/",
+          "ups": 345,
+          "score": 345,
+          "upvote_ratio": 0.77,
+          "num_comments": 116,
+          "view_count": null,
+          "is_video": false,
+          "poll_data": null,
+          "url_overridden_by_dest": null
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "id": "learnprog_post_03",
+          "name": "t3_learnprog_post_03",
+          "subreddit": "learnprogramming",
+          "title": "My desk setup for my first dev job — 3 years from where I started",
+          "selftext": "",
+          "url": "https://i.redd.it/example_desk.jpg",
+          "is_self": false,
+          "post_hint": "image",
+          "domain": "i.redd.it",
+          "link_flair_text": "Success Story",
+          "link_flair_template_id": "flair_03",
+          "author": "user_27",
+          "created_utc": 1789112214.9672086,
+          "permalink": "/r/learnprogramming/comments/learnprog_post_03/slug/",
+          "ups": 465,
+          "score": 465,
+          "upvote_ratio": 0.97,
+          "num_comments": 67,
+          "view_count": null,
+          "is_video": false,
+          "poll_data": null,
+          "url_overridden_by_dest": "https://i.redd.it/example_desk.jpg"
+        }
+      }
+    ],
+    "after": null,
+    "before": null
+  }
+}

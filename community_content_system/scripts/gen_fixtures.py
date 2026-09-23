@@ -332,6 +332,44 @@ COMMENT_TEMPLATES = [
     ("Not surprising. Python's growth has been obvious for years.", 11, 0),
     ("Because `range` produces values 0-4 and reassigning `i` inside the loop doesn't change what range yields next. The loop variable is reassigned at the top of each iteration.", 38, 0),
     ("Same confusion when I started. The loop doesn't read your modified `i`.", 9, 0),
+    # —— 扩展评论模板 —— #
+    ("The 'patterns not problems' advice is gold. Wish someone told me this 200 problems ago.", 56, 0),
+    ("Disagree on stopping easies. Easies built my confidence when I was starting out.", -3, 0),
+    ("Explaining out loud works. I started doing this and caught so many holes in my own understanding.", 28, 0),
+    ("Scope creep is real. I abandoned my last 3 projects because of it. Going to try the 'one feature at a time' rule.", 22, 0),
+    ("CLI weather app — this is EXACTLY the kind of project size beginners should start with.", 19, 0),
+    ("Git commits as checkpoints is underrated advice. Saved me many times when I broke things.", 14, 0),
+    ("The deck of cards example is perfect. I'm going to try this with my students.", 31, 0),
+    ("Encapsulation finally clicked for me when I realized it's about 'who can change this state'.", 18, 0),
+    ("Use a tuple when you want to signal 'this shouldn't change'. Like coordinates or config.", 33, 0),
+    ("Sets are great for deduplication. `list(set(my_list))` to remove duplicates.", 25, 0),
+    ("For small collections, the lookup speed difference is negligible. Use whatever is clearer.", 12, 0),
+    ("Motivation is a myth. Build a habit instead. 30 minutes daily beats 5 hours on weekends.", 47, 0),
+    ("I keep a 'lessons learned' doc per project. When I'm stuck I read it. Reminds me I've solved worse.", 16, 0),
+    ("Take a break. Seriously. Walk away for an hour. The bug often jumps out when you come back.", 39, 0),
+    ("Pro Git is dense but chapter 1-3 are gold. Skip around — you don't need to read linearly.", 21, 0),
+    ("Learn `git reflog`. It saved me from a force-push disaster once. It's a time machine.", 35, 0),
+    ("I'm 38 and just got my first dev job last month. 18 months of 10 hrs/week. It's doable.", 58, 0),
+    ("The honest answer: 10 hrs/week means 3-4 years, not 2. But it's doable. Consistency > hours.", 29, 0),
+    ("Async clicked when I imagined a restaurant: waiters don't stand by the kitchen, they take new orders while food cooks.", 44, 0),
+    ("`await` literally means 'pause this function until the result is ready, let other code run meanwhile'.", 31, 0),
+    ("Your post needs way more detail. What's the error? What have you tried? What's your code?", -2, 0),
+    ("Downvoted for the app promo. We have rules against self-promo here.", -8, 0),
+    ("Reported. Read rule 1 — no advertising in this sub.", 5, 0),
+    ("Reading stack traces is THE skill. I wasted hours Googling before I learned to read them.", 52, 0),
+    ("The file:line in a traceback is the most important part. Start there, not the error type.", 23, 0),
+    ("Bootcamp grad here. The network was worth it for me. The curriculum was okay. YMMV.", 27, 0),
+    ("Self-taught with a mentor > bootcamp, IMO. Mentors answer YOUR specific confusion.", 18, 0),
+    ("Type it out by hand, then close the tutorial and try to rewrite it. That's what worked for me.", 36, 0),
+    ("Commenting each line is underrated. Forces you to articulate why, not just what.", 15, 0),
+    ("Single responsibility principle in action. This example should be in every OOP intro.", 41, 0),
+    ("Testability is the real win. Each function can be unit tested without mocking the world.", 22, 0),
+    ("SQL execution order is the missing piece in every tutorial. Thanks for spelling it out.", 33, 0),
+    ("I'd add: GROUP BY comes after WHERE but before HAVING. People mix that up constantly.", 17, 0),
+    ("There's no 'best' language. Pick one, build something, repeat. Python is fine to start.", 24, 0),
+    ("This question gets asked 5 times a week. Try searching first.", -4, 0),
+    ("Nice setup! I'm 6 months into my first job too. Never going back to retail lol.", 14, 0),
+    ("The sub's vibe is 'ask specific questions, show what you've tried'. Vague posts get downvoted.", 11, 0),
 ]
 
 
@@ -418,47 +456,61 @@ def main():
     write_json(os.path.join(FIXTURE_ROOT, "about.json"), about)
     write_json(os.path.join(FIXTURE_ROOT, "rules.json"), rules)
 
-    # 按 score 分配到 top/hot/new
+    # 30 帖分布(模拟 Reddit:top/hot/new 有重叠,但每个 listing 视角不同)
     sorted_by_score = sorted(POST_TEMPLATES, key=lambda p: p["ups_base"], reverse=True)
-    top_posts = sorted_by_score[:6]
-    hot_posts = sorted_by_score[1:7]
-    new_posts = list(reversed(POST_TEMPLATES[:6]))
+    # top:按 score 取全部(以历史最高表现为主)
+    top_posts = sorted_by_score[:]  # 全部 30 帖按 score 倒序
+    # hot:近期活跃,中等分数为主 + 几个高分帖
+    hot_posts = sorted_by_score[2:18]  # 取中段 16 帖
+    # new:按 created 时间倒序(新帖优先,模拟 new listing)
+    new_posts = list(reversed(POST_TEMPLATES[-12:]))  # 最新 12 帖
 
     write_json(os.path.join(FIXTURE_ROOT, "top_month.json"), make_listing(top_posts, "top", "month"))
     write_json(os.path.join(FIXTURE_ROOT, "hot.json"), make_listing(hot_posts, "hot"))
     write_json(os.path.join(FIXTURE_ROOT, "new.json"), make_listing(new_posts, "new"))
 
-    # 搜索 fixture
-    search_python = [p for p in POST_TEMPLATES if "python" in p["title"].lower() or "python" in p["selftext"].lower()]
-    write_json(os.path.join(FIXTURE_ROOT, "search_python.json"), make_listing(search_python, "relevance"))
-    search_recursion = [p for p in POST_TEMPLATES if "recursion" in p["title"].lower()]
-    write_json(os.path.join(FIXTURE_ROOT, "search_recursion.json"), make_listing(search_recursion, "relevance"))
-    search_pointers = [p for p in POST_TEMPLATES if "pointer" in p["title"].lower()]
-    write_json(os.path.join(FIXTURE_ROOT, "search_pointers.json"), make_listing(search_pointers, "relevance"))
+    # 搜索 fixture(多主题覆盖)
+    def _match(keywords):
+        return [p for p in POST_TEMPLATES
+                if any(kw in p["title"].lower() or kw in p["selftext"].lower() for kw in keywords)]
+
+    write_json(os.path.join(FIXTURE_ROOT, "search_python.json"),
+               make_listing(_match(["python"]), "relevance"))
+    write_json(os.path.join(FIXTURE_ROOT, "search_recursion.json"),
+               make_listing(_match(["recursion"]), "relevance"))
+    write_json(os.path.join(FIXTURE_ROOT, "search_pointers.json"),
+               make_listing(_match(["pointer"]), "relevance"))
+    write_json(os.path.join(FIXTURE_ROOT, "search_career.json"),
+               make_listing(_match(["job", "career", "bootcamp"]), "relevance"))
+    write_json(os.path.join(FIXTURE_ROOT, "search_motivation.json"),
+               make_listing(_match(["motivation", "stuck", "give up"]), "relevance"))
 
     # 为代表性帖子生成评论(fixture:posts/<id>.json)
-    # 选高/中/低各代表
-    representative = [
-        sorted_by_score[0],   # 最高表现(经验型)
-        POST_TEMPLATES[3],    # 中表现(问题型)
-        sorted_by_score[-1],  # 低表现(模糊标题)
-        POST_TEMPLATES[7],    # 低表现(广告感)
+    # 选 6 个代表(高/中/低各 2),保证评论深采有足够样本
+    representative_indices = [
+        POST_TEMPLATES.index(sorted_by_score[0]),   # 最高(经验型)
+        POST_TEMPLATES.index(sorted_by_score[2]),   # 高表现
+        POST_TEMPLATES.index(sorted_by_score[8]),   # 中表现
+        POST_TEMPLATES.index(sorted_by_score[14]),  # 中表现
+        POST_TEMPLATES.index(sorted_by_score[-2]),  # 低表现(模糊)
+        POST_TEMPLATES.index(sorted_by_score[-1]),  # 最低(广告感)
     ]
-    for i, tmpl in enumerate(representative):
-        post_dto = make_post_dto(tmpl, i)
+    for i, idx in enumerate(representative_indices):
+        tmpl = POST_TEMPLATES[idx]
+        post_dto = make_post_dto(tmpl, idx)
         post_id = post_dto["data"]["id"]
         post_fullname = post_dto["data"]["name"]
         sub = post_dto["data"]["subreddit"]
 
-        # 生成 8-12 条评论
-        n_comments = random.randint(8, 12)
+        # 生成 8-15 条评论
+        n_comments = random.randint(8, 15)
         comments = []
         for j in range(n_comments):
-            c = make_comment_dto(post_fullname, sub, j, depth=0)
+            c = make_comment_dto(post_fullname, sub, j + i * 200, depth=0)
             comments.append(c)
             # 随机加 1-2 条回复
             if random.random() < 0.4:
-                reply = make_comment_dto(post_fullname, sub, j + 100, depth=1, parent_id=c["data"]["name"])
+                reply = make_comment_dto(post_fullname, sub, j + i * 200 + 100, depth=1, parent_id=c["data"]["name"])
                 comments.append(reply)
 
         # Reddit API 格式:[{post listing}, {comment listing}]
@@ -471,8 +523,9 @@ def main():
     print(f"  top_month.json ({len(top_posts)} posts)")
     print(f"  hot.json ({len(hot_posts)} posts)")
     print(f"  new.json ({len(new_posts)} posts)")
-    print(f"  search_python/recursion/pointers.json")
-    print(f"  posts/ ({len(representative)} posts with comments)")
+    print(f"  search: python/recursion/pointers/career/motivation")
+    print(f"  posts/ ({len(representative_indices)} posts with comments)")
+    print(f"  total templates: {len(POST_TEMPLATES)}")
 
 
 if __name__ == "__main__":

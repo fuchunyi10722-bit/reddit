@@ -1,0 +1,332 @@
+[
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t3",
+          "data": {
+            "id": "learnprog_post_12",
+            "name": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "title": "I spent 6 months grinding LeetCode and here's what I'd do differently",
+            "selftext": "I did 400 LeetCode problems. Got my first FAANG offer last week. But honestly, half that time was wasted.\n\nWhat I'd do differently:\n1. Stop doing easy problems after week 2. Most easies teach you nothing new.\n2. Focus on patterns not problems. Two-pointer, sliding window, BFS/DFS — master the pattern and you can solve 50 problems.\n3. Don't memorize. I memorized solutions and froze when the interviewer changed one variable.\n\nWhat actually worked: doing 30 mediums well, explaining each out loud to an empty room. The explaining part was key — it forced me to understand not just recall.",
+            "url": "",
+            "is_self": true,
+            "post_hint": null,
+            "domain": "self.learnprogramming",
+            "link_flair_text": "Success Story",
+            "link_flair_template_id": "flair_12",
+            "author": "user_21",
+            "created_utc": 1785109245.9672086,
+            "permalink": "/r/learnprogramming/comments/learnprog_post_12/slug/",
+            "ups": 1827,
+            "score": 1827,
+            "upvote_ratio": 0.83,
+            "num_comments": 220,
+            "view_count": null,
+            "is_video": false,
+            "poll_data": null,
+            "url_overridden_by_dest": null
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  },
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0200",
+            "name": "t1_cmt_0200",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_44",
+            "body": "Sets are great for deduplication. `list(set(my_list))` to remove duplicates.",
+            "score": 23,
+            "created_utc": 1789607705.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0201",
+            "name": "t1_cmt_0201",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_48",
+            "body": "For small collections, the lookup speed difference is negligible. Use whatever is clearer.",
+            "score": 10,
+            "created_utc": 1789452854.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0301",
+            "name": "t1_cmt_0301",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_33",
+            "body": "Memes like this are why I keep coming back lol",
+            "score": 69,
+            "created_utc": 1789480023.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0201"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0202",
+            "name": "t1_cmt_0202",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_40",
+            "body": "Motivation is a myth. Build a habit instead. 30 minutes daily beats 5 hours on weekends.",
+            "score": 46,
+            "created_utc": 1790045786.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0203",
+            "name": "t1_cmt_0203",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_49",
+            "body": "I keep a 'lessons learned' doc per project. When I'm stuck I read it. Reminds me I've solved worse.",
+            "score": 14,
+            "created_utc": 1789438232.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0303",
+            "name": "t1_cmt_0303",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_13",
+            "body": "Because `range` produces values 0-4 and reassigning `i` inside the loop doesn't change what range yields next. The loop variable is reassigned at the top of each iteration.",
+            "score": 36,
+            "created_utc": 1790118098.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0203"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0204",
+            "name": "t1_cmt_0204",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_03",
+            "body": "Take a break. Seriously. Walk away for an hour. The bug often jumps out when you come back.",
+            "score": 37,
+            "created_utc": 1789645493.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0205",
+            "name": "t1_cmt_0205",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_50",
+            "body": "Pro Git is dense but chapter 1-3 are gold. Skip around — you don't need to read linearly.",
+            "score": 18,
+            "created_utc": 1789666171.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0206",
+            "name": "t1_cmt_0206",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_41",
+            "body": "Learn `git reflog`. It saved me from a force-push disaster once. It's a time machine.",
+            "score": 36,
+            "created_utc": 1789939829.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0207",
+            "name": "t1_cmt_0207",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_25",
+            "body": "I'm 38 and just got my first dev job last month. 18 months of 10 hrs/week. It's doable.",
+            "score": 58,
+            "created_utc": 1789724643.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0307",
+            "name": "t1_cmt_0307",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_42",
+            "body": "Explaining out loud works. I started doing this and caught so many holes in my own understanding.",
+            "score": 30,
+            "created_utc": 1790137895.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0207"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0208",
+            "name": "t1_cmt_0208",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_49",
+            "body": "The honest answer: 10 hrs/week means 3-4 years, not 2. But it's doable. Consistency > hours.",
+            "score": 32,
+            "created_utc": 1789336258.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0209",
+            "name": "t1_cmt_0209",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_50",
+            "body": "Async clicked when I imagined a restaurant: waiters don't stand by the kitchen, they take new orders while food cooks.",
+            "score": 44,
+            "created_utc": 1789914238.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0309",
+            "name": "t1_cmt_0309",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_45",
+            "body": "CLI weather app — this is EXACTLY the kind of project size beginners should start with.",
+            "score": 20,
+            "created_utc": 1789656594.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0209"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0210",
+            "name": "t1_cmt_0210",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_04",
+            "body": "`await` literally means 'pause this function until the result is ready, let other code run meanwhile'.",
+            "score": 32,
+            "created_utc": 1789882406.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0211",
+            "name": "t1_cmt_0211",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_08",
+            "body": "Your post needs way more detail. What's the error? What have you tried? What's your code?",
+            "score": -2,
+            "created_utc": 1790003893.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0212",
+            "name": "t1_cmt_0212",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_43",
+            "body": "Downvoted for the app promo. We have rules against self-promo here.",
+            "score": -7,
+            "created_utc": 1789557634.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0213",
+            "name": "t1_cmt_0213",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_49",
+            "body": "Reported. Read rule 1 — no advertising in this sub.",
+            "score": 5,
+            "created_utc": 1789501297.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0214",
+            "name": "t1_cmt_0214",
+            "link_id": "t3_learnprog_post_12",
+            "subreddit": "learnprogramming",
+            "author": "user_33",
+            "body": "Reading stack traces is THE skill. I wasted hours Googling before I learned to read them.",
+            "score": 52,
+            "created_utc": 1789569224.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_12"
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  }
+]

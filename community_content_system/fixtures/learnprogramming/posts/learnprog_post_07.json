@@ -1,0 +1,332 @@
+[
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t3",
+          "data": {
+            "id": "learnprog_post_07",
+            "name": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "title": "Check out my new course on learning to code fast!",
+            "selftext": "I just launched a course that teaches you Python in 7 days. Use code LEARN20 for 20% off. Link in bio. This is the fastest way to become a developer.",
+            "url": "",
+            "is_self": true,
+            "post_hint": null,
+            "domain": "self.learnprogramming",
+            "link_flair_text": null,
+            "link_flair_template_id": null,
+            "author": "user_43",
+            "created_utc": 1787061953.9672086,
+            "permalink": "/r/learnprogramming/comments/learnprog_post_07/slug/",
+            "ups": 3,
+            "score": 3,
+            "upvote_ratio": 0.8,
+            "num_comments": 6,
+            "view_count": null,
+            "is_video": false,
+            "poll_data": null,
+            "url_overridden_by_dest": null
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  },
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0800",
+            "name": "t1_cmt_0800",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_01",
+            "body": "Can you elaborate on ownership? I think I get it but not 100%.",
+            "score": 15,
+            "created_utc": 1789703246.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0801",
+            "name": "t1_cmt_0801",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_07",
+            "body": "Tried the swap exercise. Mind blown. Why didn't my professor explain it this way?",
+            "score": 28,
+            "created_utc": 1789763928.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0802",
+            "name": "t1_cmt_0802",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_30",
+            "body": "This is gold. Saving for later.",
+            "score": 10,
+            "created_utc": 1789983287.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0803",
+            "name": "t1_cmt_0803",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_47",
+            "body": "Hot take: pointers are easy if you understand memory. The problem is most courses skip memory.",
+            "score": 16,
+            "created_utc": 1789461655.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0903",
+            "name": "t1_cmt_0903",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_35",
+            "body": "Commenting each line is underrated. Forces you to articulate why, not just what.",
+            "score": 18,
+            "created_utc": 1789636726.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0803"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0804",
+            "name": "t1_cmt_0804",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_30",
+            "body": "Your iterative-to-recursive trick is underrated. Teaching it this way should be standard.",
+            "score": 22,
+            "created_utc": 1789377173.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0805",
+            "name": "t1_cmt_0805",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_21",
+            "body": "Same here. Took me 6 months and it was a drawing on paper that did it.",
+            "score": 21,
+            "created_utc": 1789886289.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0806",
+            "name": "t1_cmt_0806",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_06",
+            "body": "`is None` is basically the only case you need `is` in Python. Everything else, use `==`.",
+            "score": 34,
+            "created_utc": 1789671009.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0906",
+            "name": "t1_cmt_0906",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_30",
+            "body": "SQL execution order is the missing piece in every tutorial. Thanks for spelling it out.",
+            "score": 34,
+            "created_utc": 1789503730.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0806"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0807",
+            "name": "t1_cmt_0807",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_43",
+            "body": "Also matters for small integers due to interning: `a = 256; b = 256; a is b` is True, but 257 is False. CPython caches -5 to 256.",
+            "score": 41,
+            "created_utc": 1789790972.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0907",
+            "name": "t1_cmt_0907",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_21",
+            "body": "I'd add: GROUP BY comes after WHERE but before HAVING. People mix that up constantly.",
+            "score": 15,
+            "created_utc": 1789632476.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0807"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0808",
+            "name": "t1_cmt_0808",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_14",
+            "body": "Have you looked at 'Grokking Algorithms'? It explains the why behind each structure with visual examples.",
+            "score": 18,
+            "created_utc": 1789307122.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0908",
+            "name": "t1_cmt_0908",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_18",
+            "body": "There's no 'best' language. Pick one, build something, repeat. Python is fine to start.",
+            "score": 25,
+            "created_utc": 1789408465.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0808"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0809",
+            "name": "t1_cmt_0809",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_18",
+            "body": "Totally normal. After 3 languages you stop noticing. Your brain compartmentalizes.",
+            "score": 15,
+            "created_utc": 1790133065.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0810",
+            "name": "t1_cmt_0810",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_13",
+            "body": "You need to be way more specific. What are you stuck ON? What have you tried? What's the error?",
+            "score": -8,
+            "created_utc": 1789890629.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0811",
+            "name": "t1_cmt_0811",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_32",
+            "body": "Read the wiki. This question gets asked every week.",
+            "score": 4,
+            "created_utc": 1789348716.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0911",
+            "name": "t1_cmt_0911",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_31",
+            "body": "The sub's vibe is 'ask specific questions, show what you've tried'. Vague posts get downvoted.",
+            "score": 13,
+            "created_utc": 1789397289.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0811"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0812",
+            "name": "t1_cmt_0812",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_32",
+            "body": "Reported for self-promotion. Read rule 1.",
+            "score": 2,
+            "created_utc": 1789312259.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_07"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0912",
+            "name": "t1_cmt_0912",
+            "link_id": "t3_learnprog_post_07",
+            "subreddit": "learnprogramming",
+            "author": "user_19",
+            "body": "Great explanation, the box-drawing tip actually helped me too.",
+            "score": 43,
+            "created_utc": 1789719664.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0812"
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  }
+]

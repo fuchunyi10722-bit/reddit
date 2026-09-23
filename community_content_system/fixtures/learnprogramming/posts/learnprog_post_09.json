@@ -1,0 +1,302 @@
+[
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t3",
+          "data": {
+            "id": "learnprog_post_09",
+            "name": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "title": "When you finally fix a bug after 4 hours and it was a missing semicolon",
+            "selftext": "",
+            "url": "https://i.redd.it/example_meme.jpg",
+            "is_self": false,
+            "post_hint": "image",
+            "domain": "i.redd.it",
+            "link_flair_text": "Meme",
+            "link_flair_template_id": "flair_09",
+            "author": "user_33",
+            "created_utc": 1787633039.9672086,
+            "permalink": "/r/learnprogramming/comments/learnprog_post_09/slug/",
+            "ups": 3394,
+            "score": 3394,
+            "upvote_ratio": 0.81,
+            "num_comments": 160,
+            "view_count": null,
+            "is_video": false,
+            "poll_data": null,
+            "url_overridden_by_dest": "https://i.redd.it/example_meme.jpg"
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  },
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0000",
+            "name": "t1_cmt_0000",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_02",
+            "body": "Great explanation, the box-drawing tip actually helped me too.",
+            "score": 42,
+            "created_utc": 1789869806.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0100",
+            "name": "t1_cmt_0100",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_17",
+            "body": "Reading stack traces is THE skill. I wasted hours Googling before I learned to read them.",
+            "score": 49,
+            "created_utc": 1790030041.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0000"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0001",
+            "name": "t1_cmt_0001",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_39",
+            "body": "This is why I love this sub. Actual explanations, not just 'google it'.",
+            "score": 32,
+            "created_utc": 1789781230.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0002",
+            "name": "t1_cmt_0002",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_21",
+            "body": "Can you elaborate on ownership? I think I get it but not 100%.",
+            "score": 12,
+            "created_utc": 1789508053.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0003",
+            "name": "t1_cmt_0003",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_08",
+            "body": "Tried the swap exercise. Mind blown. Why didn't my professor explain it this way?",
+            "score": 28,
+            "created_utc": 1789539113.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0103",
+            "name": "t1_cmt_0103",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_03",
+            "body": "Self-taught with a mentor > bootcamp, IMO. Mentors answer YOUR specific confusion.",
+            "score": 20,
+            "created_utc": 1789686470.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0003"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0004",
+            "name": "t1_cmt_0004",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_01",
+            "body": "This is gold. Saving for later.",
+            "score": 9,
+            "created_utc": 1789298022.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0005",
+            "name": "t1_cmt_0005",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_47",
+            "body": "Hot take: pointers are easy if you understand memory. The problem is most courses skip memory.",
+            "score": 17,
+            "created_utc": 1789370869.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0006",
+            "name": "t1_cmt_0006",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_24",
+            "body": "Your iterative-to-recursive trick is underrated. Teaching it this way should be standard.",
+            "score": 22,
+            "created_utc": 1790070337.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0007",
+            "name": "t1_cmt_0007",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_22",
+            "body": "Same here. Took me 6 months and it was a drawing on paper that did it.",
+            "score": 19,
+            "created_utc": 1789814545.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0008",
+            "name": "t1_cmt_0008",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_08",
+            "body": "`is None` is basically the only case you need `is` in Python. Everything else, use `==`.",
+            "score": 37,
+            "created_utc": 1789828799.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0009",
+            "name": "t1_cmt_0009",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_43",
+            "body": "Also matters for small integers due to interning: `a = 256; b = 256; a is b` is True, but 257 is False. CPython caches -5 to 256.",
+            "score": 41,
+            "created_utc": 1789801682.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0010",
+            "name": "t1_cmt_0010",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_19",
+            "body": "Have you looked at 'Grokking Algorithms'? It explains the why behind each structure with visual examples.",
+            "score": 20,
+            "created_utc": 1790010239.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0110",
+            "name": "t1_cmt_0110",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_43",
+            "body": "There's no 'best' language. Pick one, build something, repeat. Python is fine to start.",
+            "score": 24,
+            "created_utc": 1789433490.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0010"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0011",
+            "name": "t1_cmt_0011",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_48",
+            "body": "Totally normal. After 3 languages you stop noticing. Your brain compartmentalizes.",
+            "score": 12,
+            "created_utc": 1789498295.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0012",
+            "name": "t1_cmt_0012",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_26",
+            "body": "You need to be way more specific. What are you stuck ON? What have you tried? What's the error?",
+            "score": -4,
+            "created_utc": 1790143284.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_09"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0112",
+            "name": "t1_cmt_0112",
+            "link_id": "t3_learnprog_post_09",
+            "subreddit": "learnprogramming",
+            "author": "user_14",
+            "body": "Nice setup! I'm 6 months into my first job too. Never going back to retail lol.",
+            "score": 14,
+            "created_utc": 1789319782.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0012"
+          }
+        }
+      ],
+      "after": null,
+      "before": null
+    }
+  }
+]

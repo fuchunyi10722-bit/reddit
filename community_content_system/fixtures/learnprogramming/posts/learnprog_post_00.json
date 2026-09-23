@@ -9,25 +9,25 @@
             "id": "learnprog_post_00",
             "name": "t3_learnprog_post_00",
             "subreddit": "learnprogramming",
-            "title": "When you finally fix a bug after 4 hours and it was a missing semicolon",
-            "selftext": "",
-            "url": "https://i.redd.it/example_meme.jpg",
-            "is_self": false,
-            "post_hint": "image",
-            "domain": "i.redd.it",
-            "link_flair_text": "Meme",
+            "title": "After 3 months of struggling, I finally understood pointers in C. Here's what clicked.",
+            "selftext": "I kept hitting a wall with pointers. Every tutorial showed memory diagrams but never explained WHY you need a pointer to a pointer. What finally clicked was realizing it's about ownership: when you pass &x to a function, you're saying 'this function can change what x points to.'\n\nThe exercise that made it real: write a function that swaps two integers. Without pointers it's impossible; with pointers you see exactly why indirection matters.\n\nFor anyone struggling: draw boxes. Seriously. Paper and pencil. Draw what's at each address before and after each line of code.",
+            "url": "",
+            "is_self": true,
+            "post_hint": null,
+            "domain": "self.learnprogramming",
+            "link_flair_text": "Discussion",
             "link_flair_template_id": "flair_00",
-            "author": "user_33",
-            "created_utc": 1787686285.651269,
+            "author": "user_29",
+            "created_utc": 1788639396.9672086,
             "permalink": "/r/learnprogramming/comments/learnprog_post_00/slug/",
-            "ups": 3414,
-            "score": 3414,
-            "upvote_ratio": 0.96,
-            "num_comments": 145,
+            "ups": 895,
+            "score": 895,
+            "upvote_ratio": 0.77,
+            "num_comments": 125,
             "view_count": null,
             "is_video": false,
             "poll_data": null,
-            "url_overridden_by_dest": "https://i.redd.it/example_meme.jpg"
+            "url_overridden_by_dest": null
           }
         }
       ],
@@ -42,14 +42,14 @@
         {
           "kind": "t1",
           "data": {
-            "id": "cmt_0000",
-            "name": "t1_cmt_0000",
+            "id": "cmt_0400",
+            "name": "t1_cmt_0400",
             "link_id": "t3_learnprog_post_00",
             "subreddit": "learnprogramming",
             "author": "user_41",
-            "body": "Great explanation, the box-drawing tip actually helped me too.",
-            "score": 46,
-            "created_utc": 1789426401.651269,
+            "body": "This is why I love this sub. Actual explanations, not just 'google it'.",
+            "score": 31,
+            "created_utc": 1789340696.9672086,
             "depth": 0,
             "parent_id": "t3_learnprog_post_00"
           }
@@ -57,74 +57,74 @@
         {
           "kind": "t1",
           "data": {
-            "id": "cmt_0100",
-            "name": "t1_cmt_0100",
+            "id": "cmt_0401",
+            "name": "t1_cmt_0401",
             "link_id": "t3_learnprog_post_00",
             "subreddit": "learnprogramming",
-            "author": "user_24",
-            "body": "Great explanation, the box-drawing tip actually helped me too.",
-            "score": 48,
-            "created_utc": 1789895556.651269,
-            "depth": 1,
-            "parent_id": "t1_cmt_0000"
+            "author": "user_32",
+            "body": "Can you elaborate on ownership? I think I get it but not 100%.",
+            "score": 14,
+            "created_utc": 1789892842.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
           }
         },
         {
           "kind": "t1",
           "data": {
-            "id": "cmt_0001",
-            "name": "t1_cmt_0001",
+            "id": "cmt_0501",
+            "name": "t1_cmt_0501",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_05",
+            "body": "Bootcamp grad here. The network was worth it for me. The curriculum was okay. YMMV.",
+            "score": 29,
+            "created_utc": 1789844102.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0401"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0402",
+            "name": "t1_cmt_0402",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_16",
+            "body": "Tried the swap exercise. Mind blown. Why didn't my professor explain it this way?",
+            "score": 27,
+            "created_utc": 1789791548.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0502",
+            "name": "t1_cmt_0502",
             "link_id": "t3_learnprog_post_00",
             "subreddit": "learnprogramming",
             "author": "user_35",
-            "body": "This is why I love this sub. Actual explanations, not just 'google it'.",
-            "score": 35,
-            "created_utc": 1789508836.651269,
-            "depth": 0,
-            "parent_id": "t3_learnprog_post_00"
-          }
-        },
-        {
-          "kind": "t1",
-          "data": {
-            "id": "cmt_0002",
-            "name": "t1_cmt_0002",
-            "link_id": "t3_learnprog_post_00",
-            "subreddit": "learnprogramming",
-            "author": "user_39",
-            "body": "Can you elaborate on ownership? I think I get it but not 100%.",
-            "score": 11,
-            "created_utc": 1789552612.651269,
-            "depth": 0,
-            "parent_id": "t3_learnprog_post_00"
-          }
-        },
-        {
-          "kind": "t1",
-          "data": {
-            "id": "cmt_0102",
-            "name": "t1_cmt_0102",
-            "link_id": "t3_learnprog_post_00",
-            "subreddit": "learnprogramming",
-            "author": "user_24",
-            "body": "Can you elaborate on ownership? I think I get it but not 100%.",
+            "body": "Self-taught with a mentor > bootcamp, IMO. Mentors answer YOUR specific confusion.",
             "score": 15,
-            "created_utc": 1789218988.651269,
+            "created_utc": 1789998614.9672086,
             "depth": 1,
-            "parent_id": "t1_cmt_0002"
+            "parent_id": "t1_cmt_0402"
           }
         },
         {
           "kind": "t1",
           "data": {
-            "id": "cmt_0003",
-            "name": "t1_cmt_0003",
+            "id": "cmt_0403",
+            "name": "t1_cmt_0403",
             "link_id": "t3_learnprog_post_00",
             "subreddit": "learnprogramming",
-            "author": "user_20",
-            "body": "Tried the swap exercise. Mind blown. Why didn't my professor explain it this way?",
-            "score": 26,
-            "created_utc": 1790004214.651269,
+            "author": "user_10",
+            "body": "This is gold. Saving for later.",
+            "score": 6,
+            "created_utc": 1789742068.9672086,
             "depth": 0,
             "parent_id": "t3_learnprog_post_00"
           }
@@ -132,59 +132,14 @@
         {
           "kind": "t1",
           "data": {
-            "id": "cmt_0103",
-            "name": "t1_cmt_0103",
+            "id": "cmt_0404",
+            "name": "t1_cmt_0404",
             "link_id": "t3_learnprog_post_00",
             "subreddit": "learnprogramming",
-            "author": "user_37",
-            "body": "Tried the swap exercise. Mind blown. Why didn't my professor explain it this way?",
-            "score": 25,
-            "created_utc": 1789975138.651269,
-            "depth": 1,
-            "parent_id": "t1_cmt_0003"
-          }
-        },
-        {
-          "kind": "t1",
-          "data": {
-            "id": "cmt_0004",
-            "name": "t1_cmt_0004",
-            "link_id": "t3_learnprog_post_00",
-            "subreddit": "learnprogramming",
-            "author": "user_47",
-            "body": "This is gold. Saving for later.",
-            "score": 8,
-            "created_utc": 1789209290.651269,
-            "depth": 0,
-            "parent_id": "t3_learnprog_post_00"
-          }
-        },
-        {
-          "kind": "t1",
-          "data": {
-            "id": "cmt_0104",
-            "name": "t1_cmt_0104",
-            "link_id": "t3_learnprog_post_00",
-            "subreddit": "learnprogramming",
-            "author": "user_49",
-            "body": "This is gold. Saving for later.",
-            "score": 9,
-            "created_utc": 1789261917.651269,
-            "depth": 1,
-            "parent_id": "t1_cmt_0004"
-          }
-        },
-        {
-          "kind": "t1",
-          "data": {
-            "id": "cmt_0005",
-            "name": "t1_cmt_0005",
-            "link_id": "t3_learnprog_post_00",
-            "subreddit": "learnprogramming",
-            "author": "user_09",
+            "author": "user_46",
             "body": "Hot take: pointers are easy if you understand memory. The problem is most courses skip memory.",
             "score": 13,
-            "created_utc": 1789373154.651269,
+            "created_utc": 1790076361.9672086,
             "depth": 0,
             "parent_id": "t3_learnprog_post_00"
           }
@@ -192,14 +147,14 @@
         {
           "kind": "t1",
           "data": {
-            "id": "cmt_0006",
-            "name": "t1_cmt_0006",
+            "id": "cmt_0405",
+            "name": "t1_cmt_0405",
             "link_id": "t3_learnprog_post_00",
             "subreddit": "learnprogramming",
-            "author": "user_36",
+            "author": "user_22",
             "body": "Your iterative-to-recursive trick is underrated. Teaching it this way should be standard.",
-            "score": 20,
-            "created_utc": 1789787020.651269,
+            "score": 23,
+            "created_utc": 1789655152.9672086,
             "depth": 0,
             "parent_id": "t3_learnprog_post_00"
           }
@@ -207,14 +162,104 @@
         {
           "kind": "t1",
           "data": {
-            "id": "cmt_0007",
-            "name": "t1_cmt_0007",
+            "id": "cmt_0406",
+            "name": "t1_cmt_0406",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_14",
+            "body": "Same here. Took me 6 months and it was a drawing on paper that did it.",
+            "score": 21,
+            "created_utc": 1789703157.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0506",
+            "name": "t1_cmt_0506",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_50",
+            "body": "Testability is the real win. Each function can be unit tested without mocking the world.",
+            "score": 23,
+            "created_utc": 1789414401.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0406"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0407",
+            "name": "t1_cmt_0407",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_02",
+            "body": "`is None` is basically the only case you need `is` in Python. Everything else, use `==`.",
+            "score": 38,
+            "created_utc": 1789340925.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0408",
+            "name": "t1_cmt_0408",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_31",
+            "body": "Also matters for small integers due to interning: `a = 256; b = 256; a is b` is True, but 257 is False. CPython caches -5 to 256.",
+            "score": 38,
+            "created_utc": 1789774864.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0508",
+            "name": "t1_cmt_0508",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_25",
+            "body": "I'd add: GROUP BY comes after WHERE but before HAVING. People mix that up constantly.",
+            "score": 20,
+            "created_utc": 1789704334.9672086,
+            "depth": 1,
+            "parent_id": "t1_cmt_0408"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0409",
+            "name": "t1_cmt_0409",
+            "link_id": "t3_learnprog_post_00",
+            "subreddit": "learnprogramming",
+            "author": "user_35",
+            "body": "Have you looked at 'Grokking Algorithms'? It explains the why behind each structure with visual examples.",
+            "score": 21,
+            "created_utc": 1789373390.9672086,
+            "depth": 0,
+            "parent_id": "t3_learnprog_post_00"
+          }
+        },
+        {
+          "kind": "t1",
+          "data": {
+            "id": "cmt_0410",
+            "name": "t1_cmt_0410",
             "link_id": "t3_learnprog_post_00",
             "subreddit": "learnprogramming",
             "author": "user_39",
-            "body": "Same here. Took me 6 months and it was a drawing on paper that did it.",
-            "score": 18,
-            "created_utc": 1789842866.651269,
+            "body": "Totally normal. After 3 languages you stop noticing. Your brain compartmentalizes.",
+            "score": 12,
+            "created_utc": 1789631764.9672086,
             "depth": 0,
             "parent_id": "t3_learnprog_post_00"
           }
@@ -222,46 +267,16 @@
         {
           "kind": "t1",
           "data": {
-            "id": "cmt_0008",
-            "name": "t1_cmt_0008",
+            "id": "cmt_0510",
+            "name": "t1_cmt_0510",
             "link_id": "t3_learnprog_post_00",
             "subreddit": "learnprogramming",
-            "author": "user_49",
-            "body": "`is None` is basically the only case you need `is` in Python. Everything else, use `==`.",
-            "score": 37,
-            "created_utc": 1789341574.651269,
-            "depth": 0,
-            "parent_id": "t3_learnprog_post_00"
-          }
-        },
-        {
-          "kind": "t1",
-          "data": {
-            "id": "cmt_0108",
-            "name": "t1_cmt_0108",
-            "link_id": "t3_learnprog_post_00",
-            "subreddit": "learnprogramming",
-            "author": "user_20",
-            "body": "`is None` is basically the only case you need `is` in Python. Everything else, use `==`.",
-            "score": 35,
-            "created_utc": 1789360638.651269,
+            "author": "user_28",
+            "body": "This question gets asked 5 times a week. Try searching first.",
+            "score": -4,
+            "created_utc": 1790113275.9672086,
             "depth": 1,
-            "parent_id": "t1_cmt_0008"
-          }
-        },
-        {
-          "kind": "t1",
-          "data": {
-            "id": "cmt_0009",
-            "name": "t1_cmt_0009",
-            "link_id": "t3_learnprog_post_00",
-            "subreddit": "learnprogramming",
-            "author": "user_42",
-            "body": "Also matters for small integers due to interning: `a = 256; b = 256; a is b` is True, but 257 is False. CPython caches -5 to 256.",
-            "score": 40,
-            "created_utc": 1789605571.651269,
-            "depth": 0,
-            "parent_id": "t3_learnprog_post_00"
+            "parent_id": "t1_cmt_0410"
           }
         }
       ],
