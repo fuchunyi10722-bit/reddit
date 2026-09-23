@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Peptides LLM 测试</title>
+<style>
+body { font-family: -apple-system, system-ui, sans-serif; max-width: 900px; margin: 20px auto; padding: 0 20px; background: #f5f5f5; }
+.card { background: white; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+h1 { font-size: 18px; margin: 0 0 8px; }
+h2 { font-size: 14px; margin: 12px 0 6px; color: #666; }
+input, button { font-size: 14px; padding: 6px 10px; }
+button { background: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer; }
+button:disabled { background: #ccc; }
+pre { background: #f5f5f5; padding: 12px; border-radius: 4px; font-size: 12px; overflow-x: auto; max-height: 400px; white-space: pre-wrap; word-wrap: break-word; }
+.status { padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+.status.ok { background: #d4edda; color: #155724; }
+.status.fail { background: #f8d7da; color: #721c24; }
+.status.running { background: #fff3cd; color: #856404; }
+.result-box { border: 1px solid #ddd; border-radius: 4px; padding: 12px; margin-top: 8px; background: #fafafa; }
+label { display: inline-block; width: 180px; }
+.row { margin-bottom: 8px; }
+.copy-btn { font-size: 11px; padding: 2px 6px; background: #6c757d; margin-left: 8px; }
+</style>
+</head>
+<body>
+<h1>Peptides LLM 测试(本地 Ollama)</h1>
+
+<div class="card">
+<div class="row">
+<label>Ollama 地址:</label>
+<input id="base" value="http://localhost:11434" size="40">
+</div>
+<div class="row">
+<label>模型:</label>
+<input id="model" value="qwen2.5:7b" size="20">
+</div>
+<div class="row">
+<label>Temperature:</label>
+<input id="temp" value="0.3" size="6">
+<label style="width:auto;margin-left:12px">Max tokens:</label>
+<input id="maxtok" value="2000" size="8">
+</div>
+<button id="run" onclick="runAll()">开始 3 条测试</button>
+<span id="overall" class="status"></span>
+</div>
+
+<div id="results"></div>
+
+<div class="card" id="finalCard" style="display:none">
+<h2>完整结果 JSON(复制此内容回传沙箱)</h2>
+<button class="copy-btn" onclick="copyFinal()">复制</button>
+<pre id="finalJson"></pre>
+</div>
+
+<script>
+const SYSTEM_PROMPT = "You are a Reddit content analyst for a label printer product (NIIMBOT).\nYou help decide whether planned content fits a target subreddit and how to improve it.\n\nOutput valid JSON only, no markdown, no explanation.\n\nSchema:\n{\n  \"verdict\": \"fit|fit_after_fix|not_fit\",\n  \"verdict_reason\": \"string\",\n  \"key_issues\": [\n    {\n      \"issue\": \"specific problem\",\n      \"why\": \"why this is a problem in THIS community\",\n      \"evidence_type\": [\"community_rule\", \"similar_content\", \"high_performance_content\", \"low_performance_content\", \"knowledge_pattern\"],\n      \"evidence_item_ids\": [\"id1\", \"id2\"],\n      \"fix\": \"specific actionable fix\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"title|body|opening|...\",\n      \"current\": \"what's wrong now\",\n      \"suggested\": \"specific suggested replacement\",\n      \"reason\": \"why this is better\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"high|medium|low|insufficient\",\n    \"reasoning\": \"based on...\",\n    \"evidence_insufficient\": false\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\", \"search\", \"product_awareness\", \"community_penetration\"],\n    \"reasoning\": \"based on...\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 5,\n    \"high_performance_count\": 2,\n    \"mid_performance_count\": 2,\n    \"low_performance_count\": 1,\n    \"knowledge_patterns_applied\": [\"pattern_id1\"]\n  }\n}\n\nRules:\n- verdict: fit=suitable as-is; fit_after_fix=needs modification; not_fit=violates rules or fundamentally mismatched\n- Base your verdict, key_issues, and suggestions PRIMARILY on the evidence provided in the context above (community rules, similar posts, patterns). Do NOT apply generic Reddit advice that is not supported by the provided evidence for THIS community.\n- key_issues: max 3, each must be SPECIFIC to THIS community (not generic like \"improve quality\")\n- evidence_item_ids: MUST come from the cases provided in context; do NOT invent IDs. If an issue cites a community rule, reference the rule; if it cites a similar post, reference that post's id.\n- comment_participation_advice: if evidence is insufficient, set evidence_insufficient=true and confidence=\"insufficient\", do NOT fabricate advice\n- Do NOT predict exact engagement numbers; use potential_value for value TYPE only\n";
+const TESTS = [{"id": "T1_experience", "title": "Finally organized my pantry with a label maker — here's what I learned", "selftext": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.", "new_content_tags": {"topic_tags": ["organizing", "labeling"], "scenario_tags": [], "structure_tags": ["experience"], "product_visibility": "subtle", "brand_mentions": [], "search_value": "mid", "search_value_reasoning": "rule_based_fallback", "keywords": ["with", "what", "organized", "pantry", "finally", "learned", "maker", "label", "here's"]}, "all_retrieved_item_ids": ["8a57eb3b-e929-4d42-b239-0163a119a751", "618a646f-6d2a-4848-82c3-a617929b799a", "75c97de5-174e-43bd-8050-950ac18a6e51"], "similar_high_count": 2, "similar_failure_count": 1, "patterns_count": 2, "user_prompt": "=== COMMUNITY RULES ===\nrules: [{'short_name': 'Be polite.', 'description': \"You shouldn't ever be personally attacking another user in this subreddit.\"}, {'short_name': 'Report Your Affiliations', 'description': \"If you're linking to your own site, you need to disclose that fact. Either through getting flair from a moderator or by telling people when you're linking your own site.\"}, {'short_name': 'Low-Quality Spam', 'description': 'Low-Quality Spam/Astroturfing is not allowed. Necroing posts, using throwaways to shill sites, spamming random posts/comment chains and more will result in a ban. '}, {'short_name': 'You must be 18 or older', 'description': 'You must be 18 years of age or older to view and engage in this subreddit.'}, {'short_name': 'No sourcing of prescribed GLP-1 peptides ', 'description': 'These compounds cannot be sourced here, no vendor discussion for them. '}, {'short_name': 'No source discussion', 'description': ''}]\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'general', 'count': 4}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'question', 'count': 5}, {'structure': 'experience', 'count': 4}]\nproduct_acceptance: {'high': {'none': 2}, 'mid': {'none': 2}, 'low': {'none': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\n[high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general\n[high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general\n\n=== SIMILAR FAILURE/LOW CASES ===\n[failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general\n\n=== KNOWLEDGE PATTERNS ===\n[fire, status=candidate, samples=2] mid tier 帖子中,question 结构出现 2/2 次。代表性帖子: how to store unreconstituted glutathion?\n[fire, status=candidate, samples=2] high tier 帖子中,question 结构出现 2/2 次。代表性帖子: Is my reta and tesa water supposded to look like this?\n\n=== NEW CONTENT TO ANALYZE ===\nFinally organized my pantry with a label maker — here's what I learned\nI've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it."}, {"id": "T2_question", "title": "Looking for recommendations: label maker for organizing my home office files?", "selftext": "Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.", "new_content_tags": {"topic_tags": ["organizing", "labeling"], "scenario_tags": [], "structure_tags": ["question"], "product_visibility": "none", "brand_mentions": [], "search_value": "mid", "search_value_reasoning": "rule_based_fallback", "keywords": ["organizing", "files?", "home", "recommendations:", "office", "maker", "looking", "label"]}, "all_retrieved_item_ids": ["8a57eb3b-e929-4d42-b239-0163a119a751", "618a646f-6d2a-4848-82c3-a617929b799a", "75c97de5-174e-43bd-8050-950ac18a6e51"], "similar_high_count": 2, "similar_failure_count": 1, "patterns_count": 2, "user_prompt": "=== COMMUNITY RULES ===\nrules: [{'short_name': 'Be polite.', 'description': \"You shouldn't ever be personally attacking another user in this subreddit.\"}, {'short_name': 'Report Your Affiliations', 'description': \"If you're linking to your own site, you need to disclose that fact. Either through getting flair from a moderator or by telling people when you're linking your own site.\"}, {'short_name': 'Low-Quality Spam', 'description': 'Low-Quality Spam/Astroturfing is not allowed. Necroing posts, using throwaways to shill sites, spamming random posts/comment chains and more will result in a ban. '}, {'short_name': 'You must be 18 or older', 'description': 'You must be 18 years of age or older to view and engage in this subreddit.'}, {'short_name': 'No sourcing of prescribed GLP-1 peptides ', 'description': 'These compounds cannot be sourced here, no vendor discussion for them. '}, {'short_name': 'No source discussion', 'description': ''}]\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'general', 'count': 4}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'question', 'count': 5}, {'structure': 'experience', 'count': 4}]\nproduct_acceptance: {'high': {'none': 2}, 'mid': {'none': 2}, 'low': {'none': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\n[high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general\n[high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general\n\n=== SIMILAR FAILURE/LOW CASES ===\n[failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general\n\n=== KNOWLEDGE PATTERNS ===\n[fire, status=candidate, samples=2] mid tier 帖子中,question 结构出现 2/2 次。代表性帖子: how to store unreconstituted glutathion?\n[fire, status=candidate, samples=2] high tier 帖子中,question 结构出现 2/2 次。代表性帖子: Is my reta and tesa water supposded to look like this?\n\n=== NEW CONTENT TO ANALYZE ===\nLooking for recommendations: label maker for organizing my home office files?\nSetting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred."}, {"id": "T3_promotional", "title": "The Niimbot label printer changed my organizing game — 40% off this week!", "selftext": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.", "new_content_tags": {"topic_tags": ["organizing", "labeling"], "scenario_tags": [], "structure_tags": ["promotional"], "product_visibility": "promotional", "brand_mentions": [], "search_value": "low", "search_value_reasoning": "rule_based_fallback", "keywords": ["changed", "this", "game", "week!", "organizing", "niimbot", "printer", "label"]}, "all_retrieved_item_ids": ["8a57eb3b-e929-4d42-b239-0163a119a751", "618a646f-6d2a-4848-82c3-a617929b799a", "75c97de5-174e-43bd-8050-950ac18a6e51"], "similar_high_count": 2, "similar_failure_count": 1, "patterns_count": 2, "user_prompt": "=== COMMUNITY RULES ===\nrules: [{'short_name': 'Be polite.', 'description': \"You shouldn't ever be personally attacking another user in this subreddit.\"}, {'short_name': 'Report Your Affiliations', 'description': \"If you're linking to your own site, you need to disclose that fact. Either through getting flair from a moderator or by telling people when you're linking your own site.\"}, {'short_name': 'Low-Quality Spam', 'description': 'Low-Quality Spam/Astroturfing is not allowed. Necroing posts, using throwaways to shill sites, spamming random posts/comment chains and more will result in a ban. '}, {'short_name': 'You must be 18 or older', 'description': 'You must be 18 years of age or older to view and engage in this subreddit.'}, {'short_name': 'No sourcing of prescribed GLP-1 peptides ', 'description': 'These compounds cannot be sourced here, no vendor discussion for them. '}, {'short_name': 'No source discussion', 'description': ''}]\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'general', 'count': 4}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'question', 'count': 5}, {'structure': 'experience', 'count': 4}]\nproduct_acceptance: {'high': {'none': 2}, 'mid': {'none': 2}, 'low': {'none': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\n[high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general\n[high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general\n\n=== SIMILAR FAILURE/LOW CASES ===\n[failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general\n\n=== KNOWLEDGE PATTERNS ===\n[fire, status=candidate, samples=2] mid tier 帖子中,question 结构出现 2/2 次。代表性帖子: how to store unreconstituted glutathion?\n[fire, status=candidate, samples=2] high tier 帖子中,question 结构出现 2/2 次。代表性帖子: Is my reta and tesa water supposded to look like this?\n\n=== NEW CONTENT TO ANALYZE ===\nThe Niimbot label printer changed my organizing game — 40% off this week!\nJust sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization."}];
+
+async function callOllama(base, model, systemPrompt, userPrompt, temperature, maxTokens) {
+  const start = performance.now();
+  try {
+    const resp = await fetch(base + "/api/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {role: "system", content: systemPrompt},
+          {role: "user", content: userPrompt}
+        ],
+        stream: false,
+        options: {temperature: temperature, num_predict: maxTokens},
+        format: "json"
+      })
+    });
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const data = await resp.json();
+    const raw = (data.message || {}).content || "";
+    let parsed = null;
+    try { parsed = JSON.parse(raw); } catch(e) {
+      const m = raw.match(/```json\s*(.*?)\s*```/s) || raw.match(/\{.*\}/s);
+      if (m) { try { parsed = JSON.parse(m[0].includes("```") ? m[1] : m[0]); } catch(e2) {} }
+    }
+    return {
+      model: model,
+      response_text: raw,
+      parsed_json: parsed,
+      success: parsed !== null,
+      error: parsed === null ? "JSON parse failed" : null,
+      latency_ms: Math.round(performance.now() - start)
+    };
+  } catch (e) {
+    return {model: model, response_text: "", parsed_json: null, success: false, error: e.toString(), latency_ms: Math.round(performance.now() - start)};
+  }
+}
+
+function validateEvidence(parsed, allowedIds) {
+  if (!parsed) return {valid: false, reason: "no parsed JSON"};
+  const allowed = new Set(allowedIds);
+  const claimed = new Set();
+  for (const issue of (parsed.key_issues || [])) {
+    for (const eid of (issue.evidence_item_ids || [])) claimed.add(eid);
+  }
+  const invalid = [...claimed].filter(x => !allowed.has(x));
+  return {valid: invalid.length === 0, llm_claimed_ids: [...claimed].sort(), invalid_ids: invalid.sort(), allowed_ids: [...allowed].sort()};
+}
+
+async function runAll() {
+  const runBtn = document.getElementById("run");
+  const base = document.getElementById("base").value;
+  const model = document.getElementById("model").value;
+  const temp = parseFloat(document.getElementById("temp").value);
+  const maxTok = parseInt(document.getElementById("maxtok").value);
+  
+  runBtn.disabled = true;
+  document.getElementById("overall").className = "status running";
+  document.getElementById("overall").textContent = "运行中...";
+  
+  const resultsContainer = document.getElementById("results");
+  resultsContainer.innerHTML = "";
+  
+  const results = [];
+  for (let i = 0; i < TESTS.length; i++) {
+    const t = TESTS[i];
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = '<h1>[' + (i+1) + '/' + TESTS.length + '] ' + t.id + '</h1>' +
+                    '<h2>' + t.title.substring(0, 80) + '</h2>' +
+                    '<div class="status running">调用中...</div>' +
+                    '<div class="result-box"><pre style="max-height:200px">等待结果</pre></div>';
+    resultsContainer.appendChild(div);
+    
+    const call = await callOllama(base, model, SYSTEM_PROMPT, t.user_prompt, temp, maxTok);
+    const v = validateEvidence(call.parsed_json, t.all_retrieved_item_ids);
+    
+    const statusDiv = div.querySelector(".status");
+    const resultBox = div.querySelector(".result-box");
+    if (call.success) {
+      statusDiv.className = "status ok";
+      statusDiv.textContent = "OK " + call.latency_ms + "ms verdict=" + (call.parsed_json.verdict || "?");
+      resultBox.innerHTML = "<h2>LLM 判断</h2><pre>" + JSON.stringify(call.parsed_json, null, 2).replace(/</g, "&lt;") + "</pre>" +
+                           "<h2>Evidence 校验</h2><pre>" + JSON.stringify(v, null, 2) + "</pre>" +
+                           "<h2>原始 response</h2><pre style='max-height:150px'>" + call.response_text.substring(0, 2000).replace(/</g, "&lt;") + "</pre>";
+    } else {
+      statusDiv.className = "status fail";
+      statusDiv.textContent = "FAIL: " + call.error;
+      resultBox.innerHTML = "<pre>" + (call.response_text || call.error || "").substring(0, 2000) + "</pre>";
+    }
+    
+    results.push({
+      test_id: t.id,
+      title: t.title,
+      selftext: t.selftext,
+      new_content_tags: t.new_content_tags,
+      all_retrieved_item_ids: t.all_retrieved_item_ids,
+      similar_high_count: t.similar_high_count,
+      similar_failure_count: t.similar_failure_count,
+      patterns_count: t.patterns_count,
+      llm_call: call,
+      evidence_validation: v
+    });
+  }
+  
+  document.getElementById("overall").className = "status ok";
+  document.getElementById("overall").textContent = "全部完成";
+  
+  const finalOutput = {model: model, base: base, temperature: temp, results: results};
+  document.getElementById("finalJson").textContent = JSON.stringify(finalOutput, null, 2);
+  document.getElementById("finalCard").style.display = "block";
+  
+  runBtn.disabled = false;
+}
+
+function copyFinal() {
+  const text = document.getElementById("finalJson").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = "已复制!";
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+</script>
+</body>
+</html>

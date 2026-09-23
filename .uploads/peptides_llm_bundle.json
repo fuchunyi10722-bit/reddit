@@ -1,0 +1,311 @@
+{
+  "schema": {
+    "type": "object",
+    "required": [
+      "verdict",
+      "verdict_reason",
+      "key_issues",
+      "modification_suggestions",
+      "comment_participation_advice",
+      "potential_value",
+      "evidence"
+    ],
+    "properties": {
+      "verdict": {
+        "enum": [
+          "fit",
+          "fit_after_fix",
+          "not_fit"
+        ]
+      },
+      "verdict_reason": {
+        "type": "string"
+      },
+      "key_issues": {
+        "type": "array",
+        "maxItems": 3,
+        "items": {
+          "type": "object",
+          "required": [
+            "issue",
+            "why",
+            "evidence_type",
+            "evidence_item_ids",
+            "fix"
+          ],
+          "properties": {
+            "issue": {
+              "type": "string"
+            },
+            "why": {
+              "type": "string"
+            },
+            "evidence_type": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "evidence_item_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "fix": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "modification_suggestions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "target",
+            "current",
+            "suggested",
+            "reason"
+          ],
+          "properties": {
+            "target": {
+              "type": "string"
+            },
+            "current": {
+              "type": "string"
+            },
+            "suggested": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "comment_participation_advice": {
+        "type": "object",
+        "required": [
+          "should_reply_natural_comments",
+          "should_supplement_own_comment",
+          "should_wait_for_natural_discussion",
+          "should_share_product_in_comments",
+          "should_participate_before_posting",
+          "confidence",
+          "evidence_insufficient"
+        ],
+        "properties": {
+          "should_reply_natural_comments": {
+            "type": "boolean"
+          },
+          "should_supplement_own_comment": {
+            "type": "boolean"
+          },
+          "should_wait_for_natural_discussion": {
+            "type": "boolean"
+          },
+          "should_share_product_in_comments": {
+            "type": "boolean"
+          },
+          "should_participate_before_posting": {
+            "type": "boolean"
+          },
+          "confidence": {
+            "enum": [
+              "high",
+              "medium",
+              "low",
+              "insufficient"
+            ]
+          },
+          "reasoning": {
+            "type": "string"
+          },
+          "evidence_insufficient": {
+            "type": "boolean"
+          }
+        }
+      },
+      "potential_value": {
+        "type": "object",
+        "required": [
+          "value_types",
+          "reasoning"
+        ],
+        "properties": {
+          "value_types": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "interaction",
+                "discussion",
+                "search",
+                "product_awareness",
+                "community_penetration"
+              ]
+            }
+          },
+          "reasoning": {
+            "type": "string"
+          }
+        }
+      },
+      "evidence": {
+        "type": "object",
+        "required": [
+          "community_rule",
+          "similar_content_count",
+          "high_performance_count",
+          "mid_performance_count",
+          "low_performance_count",
+          "knowledge_patterns_applied"
+        ],
+        "properties": {
+          "community_rule": {
+            "type": "boolean"
+          },
+          "similar_content_count": {
+            "type": "integer"
+          },
+          "high_performance_count": {
+            "type": "integer"
+          },
+          "mid_performance_count": {
+            "type": "integer"
+          },
+          "low_performance_count": {
+            "type": "integer"
+          },
+          "knowledge_patterns_applied": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "system_prompt": "You are a Reddit content analyst for a label printer product (NIIMBOT).\nYou help decide whether planned content fits a target subreddit and how to improve it.\n\nOutput valid JSON only, no markdown, no explanation.\n\nSchema:\n{\n  \"verdict\": \"fit|fit_after_fix|not_fit\",\n  \"verdict_reason\": \"string\",\n  \"key_issues\": [\n    {\n      \"issue\": \"specific problem\",\n      \"why\": \"why this is a problem in THIS community\",\n      \"evidence_type\": [\"community_rule\", \"similar_content\", \"high_performance_content\", \"low_performance_content\", \"knowledge_pattern\"],\n      \"evidence_item_ids\": [\"id1\", \"id2\"],\n      \"fix\": \"specific actionable fix\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"title|body|opening|...\",\n      \"current\": \"what's wrong now\",\n      \"suggested\": \"specific suggested replacement\",\n      \"reason\": \"why this is better\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"high|medium|low|insufficient\",\n    \"reasoning\": \"based on...\",\n    \"evidence_insufficient\": false\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\", \"search\", \"product_awareness\", \"community_penetration\"],\n    \"reasoning\": \"based on...\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 5,\n    \"high_performance_count\": 2,\n    \"mid_performance_count\": 2,\n    \"low_performance_count\": 1,\n    \"knowledge_patterns_applied\": [\"pattern_id1\"]\n  }\n}\n\nRules:\n- verdict: fit=suitable as-is; fit_after_fix=needs modification; not_fit=violates rules or fundamentally mismatched\n- key_issues: max 3, each must be SPECIFIC (not generic like \"improve quality\")\n- evidence_item_ids: MUST come from the cases provided in context; do NOT invent IDs\n- comment_participation_advice: if evidence is insufficient, set evidence_insufficient=true and confidence=\"insufficient\", do NOT fabricate advice\n- Do NOT predict exact engagement numbers; use potential_value for value TYPE only\n",
+  "tests": [
+    {
+      "id": "T1_experience",
+      "title": "Finally organized my pantry with a label maker — here's what I learned",
+      "selftext": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+      "new_content": "Finally organized my pantry with a label maker — here's what I learned\nI've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+      "new_content_tags": {
+        "topic_tags": [
+          "organizing",
+          "labeling"
+        ],
+        "scenario_tags": [],
+        "structure_tags": [
+          "experience"
+        ],
+        "product_visibility": "subtle",
+        "brand_mentions": [],
+        "search_value": "mid",
+        "search_value_reasoning": "rule_based_fallback",
+        "keywords": [
+          "with",
+          "what",
+          "organized",
+          "pantry",
+          "finally",
+          "learned",
+          "maker",
+          "label",
+          "here's"
+        ]
+      },
+      "user_prompt": "=== COMMUNITY RULES ===\nrules: [{'short_name': 'Be polite.', 'description': \"You shouldn't ever be personally attacking another user in this subreddit.\"}, {'short_name': 'Report Your Affiliations', 'description': \"If you're linking to your own site, you need to disclose that fact. Either through getting flair from a moderator or by telling people when you're linking your own site.\"}, {'short_name': 'Low-Quality Spam', 'description': 'Low-Quality Spam/Astroturfing is not allowed. Necroing posts, using throwaways to shill sites, spamming random posts/comment chains and more will result in a ban. '}, {'short_name': 'You must be 18 or older', 'description': 'You must be 18 years of age or older to view and engage in this subreddit.'}, {'short_name': 'No sourcing of prescribed GLP-1 peptides ', 'description': 'These compounds cannot be sourced here, no vendor discussion for them. '}, {'short_name': 'No source discussion', 'description': ''}]\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'general', 'count': 4}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'question', 'count': 5}, {'structure': 'experience', 'count': 4}]\nproduct_acceptance: {'high': {'none': 2}, 'mid': {'none': 2}, 'low': {'none': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\n[high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general\n[high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general\n\n=== SIMILAR FAILURE/LOW CASES ===\n[failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general\n\n=== KNOWLEDGE PATTERNS ===\n[fire, status=candidate, samples=2] mid tier 帖子中,question 结构出现 2/2 次。代表性帖子: how to store unreconstituted glutathion?\n[fire, status=candidate, samples=2] high tier 帖子中,question 结构出现 2/2 次。代表性帖子: Is my reta and tesa water supposded to look like this?\n\n=== NEW CONTENT TO ANALYZE ===\nFinally organized my pantry with a label maker — here's what I learned\nI've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+      "all_retrieved_item_ids": [
+        "8a57eb3b-e929-4d42-b239-0163a119a751",
+        "618a646f-6d2a-4848-82c3-a617929b799a",
+        "75c97de5-174e-43bd-8050-950ac18a6e51"
+      ],
+      "similar_high_count": 2,
+      "similar_failure_count": 1,
+      "patterns_count": 2
+    },
+    {
+      "id": "T2_question",
+      "title": "Looking for recommendations: label maker for organizing my home office files?",
+      "selftext": "Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+      "new_content": "Looking for recommendations: label maker for organizing my home office files?\nSetting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+      "new_content_tags": {
+        "topic_tags": [
+          "organizing",
+          "labeling"
+        ],
+        "scenario_tags": [],
+        "structure_tags": [
+          "question"
+        ],
+        "product_visibility": "none",
+        "brand_mentions": [],
+        "search_value": "mid",
+        "search_value_reasoning": "rule_based_fallback",
+        "keywords": [
+          "organizing",
+          "files?",
+          "home",
+          "recommendations:",
+          "office",
+          "maker",
+          "looking",
+          "label"
+        ]
+      },
+      "user_prompt": "=== COMMUNITY RULES ===\nrules: [{'short_name': 'Be polite.', 'description': \"You shouldn't ever be personally attacking another user in this subreddit.\"}, {'short_name': 'Report Your Affiliations', 'description': \"If you're linking to your own site, you need to disclose that fact. Either through getting flair from a moderator or by telling people when you're linking your own site.\"}, {'short_name': 'Low-Quality Spam', 'description': 'Low-Quality Spam/Astroturfing is not allowed. Necroing posts, using throwaways to shill sites, spamming random posts/comment chains and more will result in a ban. '}, {'short_name': 'You must be 18 or older', 'description': 'You must be 18 years of age or older to view and engage in this subreddit.'}, {'short_name': 'No sourcing of prescribed GLP-1 peptides ', 'description': 'These compounds cannot be sourced here, no vendor discussion for them. '}, {'short_name': 'No source discussion', 'description': ''}]\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'general', 'count': 4}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'question', 'count': 5}, {'structure': 'experience', 'count': 4}]\nproduct_acceptance: {'high': {'none': 2}, 'mid': {'none': 2}, 'low': {'none': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\n[high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general\n[high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general\n\n=== SIMILAR FAILURE/LOW CASES ===\n[failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general\n\n=== KNOWLEDGE PATTERNS ===\n[fire, status=candidate, samples=2] mid tier 帖子中,question 结构出现 2/2 次。代表性帖子: how to store unreconstituted glutathion?\n[fire, status=candidate, samples=2] high tier 帖子中,question 结构出现 2/2 次。代表性帖子: Is my reta and tesa water supposded to look like this?\n\n=== NEW CONTENT TO ANALYZE ===\nLooking for recommendations: label maker for organizing my home office files?\nSetting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+      "all_retrieved_item_ids": [
+        "8a57eb3b-e929-4d42-b239-0163a119a751",
+        "618a646f-6d2a-4848-82c3-a617929b799a",
+        "75c97de5-174e-43bd-8050-950ac18a6e51"
+      ],
+      "similar_high_count": 2,
+      "similar_failure_count": 1,
+      "patterns_count": 2
+    },
+    {
+      "id": "T3_promotional",
+      "title": "The Niimbot label printer changed my organizing game — 40% off this week!",
+      "selftext": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+      "new_content": "The Niimbot label printer changed my organizing game — 40% off this week!\nJust sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+      "new_content_tags": {
+        "topic_tags": [
+          "organizing",
+          "labeling"
+        ],
+        "scenario_tags": [],
+        "structure_tags": [
+          "promotional"
+        ],
+        "product_visibility": "promotional",
+        "brand_mentions": [],
+        "search_value": "low",
+        "search_value_reasoning": "rule_based_fallback",
+        "keywords": [
+          "changed",
+          "this",
+          "game",
+          "week!",
+          "organizing",
+          "niimbot",
+          "printer",
+          "label"
+        ]
+      },
+      "user_prompt": "=== COMMUNITY RULES ===\nrules: [{'short_name': 'Be polite.', 'description': \"You shouldn't ever be personally attacking another user in this subreddit.\"}, {'short_name': 'Report Your Affiliations', 'description': \"If you're linking to your own site, you need to disclose that fact. Either through getting flair from a moderator or by telling people when you're linking your own site.\"}, {'short_name': 'Low-Quality Spam', 'description': 'Low-Quality Spam/Astroturfing is not allowed. Necroing posts, using throwaways to shill sites, spamming random posts/comment chains and more will result in a ban. '}, {'short_name': 'You must be 18 or older', 'description': 'You must be 18 years of age or older to view and engage in this subreddit.'}, {'short_name': 'No sourcing of prescribed GLP-1 peptides ', 'description': 'These compounds cannot be sourced here, no vendor discussion for them. '}, {'short_name': 'No source discussion', 'description': ''}]\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'general', 'count': 4}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'question', 'count': 5}, {'structure': 'experience', 'count': 4}]\nproduct_acceptance: {'high': {'none': 2}, 'mid': {'none': 2}, 'low': {'none': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\n[high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general\n[high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general\n\n=== SIMILAR FAILURE/LOW CASES ===\n[failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general\n\n=== KNOWLEDGE PATTERNS ===\n[fire, status=candidate, samples=2] mid tier 帖子中,question 结构出现 2/2 次。代表性帖子: how to store unreconstituted glutathion?\n[fire, status=candidate, samples=2] high tier 帖子中,question 结构出现 2/2 次。代表性帖子: Is my reta and tesa water supposded to look like this?\n\n=== NEW CONTENT TO ANALYZE ===\nThe Niimbot label printer changed my organizing game — 40% off this week!\nJust sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+      "all_retrieved_item_ids": [
+        "8a57eb3b-e929-4d42-b239-0163a119a751",
+        "618a646f-6d2a-4848-82c3-a617929b799a",
+        "75c97de5-174e-43bd-8050-950ac18a6e51"
+      ],
+      "similar_high_count": 2,
+      "similar_failure_count": 1,
+      "patterns_count": 2
+    }
+  ]
+}
