@@ -47,8 +47,8 @@ import requests
 
 # —— 配置 —— #
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FIXTURE_ROOT = os.path.join(ROOT, "fixtures")
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+FIXTURE_ROOT = os.path.join(SCRIPT_DIR, "fixtures")
 
 DEFAULT_SUBS = ["organization", "Etsy", "Peptides"]
 
