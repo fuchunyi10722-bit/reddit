@@ -183,8 +183,33 @@ def _build_case_summary(
     )
 
 
+def _tokenize(text: str) -> set[str]:
+    """简单 token 化(小写、去标点、去停用词)。
+
+    用于 new_content 与历史帖标题/正文的 token 重叠打分,
+    补足 new_content_tags.keywords 缺失时的内容匹配能力。
+    """
+    import re
+    if not text:
+        return set()
+    text_lower = text.lower()
+    # 去标点
+    text_clean = re.sub(r"[^\w\s]", " ", text_lower)
+    words = [w for w in text_clean.split() if w]
+    # 停用词(英文)
+    stop = {
+        "the", "a", "an", "is", "are", "was", "were", "be", "been",
+        "i", "my", "me", "we", "you", "your", "he", "she", "it", "they",
+        "to", "in", "on", "for", "with", "of", "at", "by", "from", "and",
+        "or", "but", "this", "that", "these", "those", "do", "does", "did",
+        "how", "what", "why", "when", "where", "which", "can", "should",
+    }
+    return {w for w in words if w not in stop and len(w) > 2}
+
+
 def _retrieve_by_tags(
     subreddit: str,
+    new_content: str,
     new_content_tags: dict,
     tier_filter: str,
     limit: int,
@@ -192,13 +217,16 @@ def _retrieve_by_tags(
     """标签规则式召回(Phase 2 起步,不依赖真实 embedding)。
 
     匹配优先级:
-    1. topic_tags 交集
-    2. structure_tags 交集
-    3. scenario_tags 交集
-    4. 关键词匹配(标题/正文)
+    1. topic_tags 交集(权重 3)
+    2. structure_tags 交集(权重 2)
+    3. scenario_tags 交集(权重 2)
+    4. new_content token 与历史帖标题/正文 token 重叠(权重 1)
+    5. 关键词显式匹配(new_content_tags.keywords,权重 1)
+
+    内容匹配的加入,让相同标签但不同具体内容的 new_content,
+    也能召回不同的 similar 案例,而不是只按 tier+tags 召回。
     """
     with get_session() as s:
-        # 查该社区所有已分层+已标签的帖子
         query = (
             s.query(ReferenceItem, ContentAnalysis, PerformanceAnalysis)
             .join(ContentAnalysis, ContentAnalysis.reference_item_id == ReferenceItem.id)
@@ -211,7 +239,6 @@ def _retrieve_by_tags(
         if tier_filter == "high":
             query = query.filter(PerformanceAnalysis.performance_tier == "high")
         elif tier_filter == "failure":
-            # failure: 被删 / score<0 / promotional
             query = query.filter(
                 (ReferenceItem.retention_status == "deleted")
                 | (ReferenceItem.score < 0)
@@ -223,32 +250,35 @@ def _retrieve_by_tags(
 
         rows = query.all()
 
-        # 标签匹配打分
         new_topics = set(new_content_tags.get("topic_tags", []))
         new_structures = set(new_content_tags.get("structure_tags", []))
         new_scenarios = set(new_content_tags.get("scenario_tags", []))
         new_keywords = set(new_content_tags.get("keywords", []))
+        new_tokens = _tokenize(new_content)
 
         scored: list[tuple[int, tuple]] = []
         for item, analysis, perf in rows:
             score = 0
-            # topic 交集
             item_topics = set(analysis.topic_tags or [])
             score += len(new_topics & item_topics) * 3
-            # structure 交集
             item_structures = set(analysis.structure_tags or [])
             score += len(new_structures & item_structures) * 2
-            # scenario 交集
             item_scenarios = set(analysis.scenario_tags or [])
             score += len(new_scenarios & item_scenarios) * 2
-            # 关键词匹配(标题+正文)
-            text_lower = f"{item.title} {item.selftext}".lower()
+
+            # new_content token 重叠(标题 + 正文)
+            item_text = f"{item.title or ''} {item.selftext or ''}"
+            item_tokens = _tokenize(item_text)
+            score += len(new_tokens & item_tokens)
+
+            # 显式 keywords 匹配
+            text_lower = item_text.lower()
             for kw in new_keywords:
                 if kw.lower() in text_lower:
                     score += 1
+
             scored.append((score, (item, analysis, perf)))
 
-        # 按分数降序,取 top N
         scored.sort(key=lambda x: x[0], reverse=True)
         return [t[1] for t in scored[:limit]]
 
@@ -290,7 +320,7 @@ def retrieve_for_analysis(
             result.rules_summary = {"note": "community not initialized"}
 
         # B. 相似案例 — high
-        high_rows = _retrieve_by_tags(subreddit, new_content_tags, "high", high_count)
+        high_rows = _retrieve_by_tags(subreddit, new_content, new_content_tags, "high", high_count)
         for item, analysis, perf in high_rows:
             result.similar_high.append(
                 _build_case_summary(item, analysis, perf, tier_override="high")
@@ -298,7 +328,7 @@ def retrieve_for_analysis(
             result.all_retrieved_item_ids.add(item.id)
 
         # B. 相似案例 — failure
-        failure_rows = _retrieve_by_tags(subreddit, new_content_tags, "failure", failure_count)
+        failure_rows = _retrieve_by_tags(subreddit, new_content, new_content_tags, "failure", failure_count)
         for item, analysis, perf in failure_rows:
             result.similar_failure.append(
                 _build_case_summary(item, analysis, perf, tier_override="failure")
@@ -306,15 +336,22 @@ def retrieve_for_analysis(
             result.all_retrieved_item_ids.add(item.id)
 
         # C. 相关 KnowledgePattern
+        # 注意:KnowledgePattern 没有 subreddit 列,只能用 applicable_conditions 中的
+        # subreddit 字段做内存过滤(确保不召回其他社区的规律)。
+        def _matches_sub(p: KnowledgePattern) -> bool:
+            cond = p.applicable_conditions or {}
+            return cond.get("subreddit") == subreddit
+
         # fire 规律
-        fire_patterns = (
-            s.query(KnowledgePattern)
-            .filter(KnowledgePattern.pattern_type == "fire")
-            .filter(KnowledgePattern.status.in_(["candidate", "supported"]))
-            .order_by(KnowledgePattern.created_at.desc())
-            .limit(pattern_count)
-            .all()
-        )
+        fire_patterns = [
+            p for p in (
+                s.query(KnowledgePattern)
+                .filter(KnowledgePattern.pattern_type == "fire")
+                .filter(KnowledgePattern.status.in_(["candidate", "supported"]))
+                .order_by(KnowledgePattern.created_at.desc())
+                .all()
+            ) if _matches_sub(p)
+        ][:pattern_count]
         for p in fire_patterns:
             result.fire_patterns.append(PatternSummary(
                 pattern_id=p.id,
@@ -325,14 +362,15 @@ def retrieve_for_analysis(
             ))
 
         # search 规律
-        search_patterns = (
-            s.query(KnowledgePattern)
-            .filter(KnowledgePattern.pattern_type == "search")
-            .filter(KnowledgePattern.status.in_(["candidate", "supported"]))
-            .order_by(KnowledgePattern.created_at.desc())
-            .limit(pattern_count)
-            .all()
-        )
+        search_patterns = [
+            p for p in (
+                s.query(KnowledgePattern)
+                .filter(KnowledgePattern.pattern_type == "search")
+                .filter(KnowledgePattern.status.in_(["candidate", "supported"]))
+                .order_by(KnowledgePattern.created_at.desc())
+                .all()
+            ) if _matches_sub(p)
+        ][:pattern_count]
         for p in search_patterns:
             result.search_patterns.append(PatternSummary(
                 pattern_id=p.id,
@@ -343,14 +381,15 @@ def retrieve_for_analysis(
             ))
 
         # failure 规律
-        failure_patterns = (
-            s.query(KnowledgePattern)
-            .filter(KnowledgePattern.pattern_type == "failure")
-            .filter(KnowledgePattern.status.in_(["candidate", "supported"]))
-            .order_by(KnowledgePattern.created_at.desc())
-            .limit(pattern_count)
-            .all()
-        )
+        failure_patterns = [
+            p for p in (
+                s.query(KnowledgePattern)
+                .filter(KnowledgePattern.pattern_type == "failure")
+                .filter(KnowledgePattern.status.in_(["candidate", "supported"]))
+                .order_by(KnowledgePattern.created_at.desc())
+                .all()
+            ) if _matches_sub(p)
+        ][:pattern_count]
         for p in failure_patterns:
             result.failure_patterns.append(PatternSummary(
                 pattern_id=p.id,
