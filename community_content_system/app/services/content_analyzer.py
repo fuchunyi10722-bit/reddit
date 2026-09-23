@@ -1,29 +1,244 @@
 """新内容分析:计划内容 + 目标社区 → AI 判断。
 
-流程:
-1. 解析新内容(抽取 content_variables)
-2. 召回目标社区 CommunityProfile + KnowledgePattern + 相似 ReferenceItem
-3. 五层证据召回(规则层/社区规律/用户行为/自有历史/搜索)
-4. 对照召回(高/中/低/失败四档)
-5. 判断:适配度(fit/fit_after_fix/not_fit) + 2-3 问题 + 修改建议 + 评论参与 + 证据
-6. 保存发布前快照(immutable)
+Phase 2:
+- 调用 LLM 做综合判断(通过 LLMProvider 抽象)
+- LLM 失败时降级到规则式 fallback
+- 保留人工修正入口(human_override_verdict)
+- 发布前快照 immutable 不变
+- 不做精确互动量预测(已从 Schema 删除 prediction.engagement_level)
 
-第一阶段:规则式判断 + 预留 LLM 接口。
-不平均成单一分数,各层证据分别呈现。
+流程:
+1. Classifier 给新内容打标签
+2. Retrieval 召回(社区规则 + high/failure 案例 + KnowledgePattern)
+3. LLM 综合判断(verdict + issues + suggestions + comment_advice + evidence)
+4. schema 校验 + fallback
+5. 保存发布前快照(immutable)
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
 from datetime import datetime
 from typing import Optional
 
+from ..config import settings
 from ..database import get_session
 from ..models.knowledge import CommunityProfile, KnowledgePattern
 from ..models.reference import ReferenceItem
 from ..models.analysis import ContentAnalysis, PerformanceAnalysis
 from ..models.snapshot import ContentAnalysisSnapshot
 from . import embedder, classifier as classifier_svc
+from .llm_client import get_llm_provider, LLMCallLog
+from .llm_schemas import ANALYZER_SCHEMA, validate_and_fallback
+from .retrieval import retrieve_for_analysis, RetrievalResult
+
+
+# ============================================================
+# LLM Analyzer Prompt
+# ============================================================
+ANALYZER_SYSTEM_PROMPT = """You are a Reddit content analyst for a label printer product (NIIMBOT).
+You help decide whether planned content fits a target subreddit and how to improve it.
+
+Output valid JSON only, no markdown, no explanation.
+
+Schema:
+{
+  "verdict": "fit|fit_after_fix|not_fit",
+  "verdict_reason": "string",
+  "key_issues": [
+    {
+      "issue": "specific problem",
+      "why": "why this is a problem in THIS community",
+      "evidence_type": ["community_rule", "similar_content", "high_performance_content", "low_performance_content", "knowledge_pattern"],
+      "evidence_item_ids": ["id1", "id2"],
+      "fix": "specific actionable fix"
+    }
+  ],
+  "modification_suggestions": [
+    {
+      "target": "title|body|opening|...",
+      "current": "what's wrong now",
+      "suggested": "specific suggested replacement",
+      "reason": "why this is better"
+    }
+  ],
+  "comment_participation_advice": {
+    "should_reply_natural_comments": true,
+    "should_supplement_own_comment": false,
+    "should_wait_for_natural_discussion": true,
+    "should_share_product_in_comments": false,
+    "should_participate_before_posting": false,
+    "confidence": "high|medium|low|insufficient",
+    "reasoning": "based on...",
+    "evidence_insufficient": false
+  },
+  "potential_value": {
+    "value_types": ["interaction", "discussion", "search", "product_awareness", "community_penetration"],
+    "reasoning": "based on..."
+  },
+  "evidence": {
+    "community_rule": true,
+    "similar_content_count": 5,
+    "high_performance_count": 2,
+    "mid_performance_count": 2,
+    "low_performance_count": 1,
+    "knowledge_patterns_applied": ["pattern_id1"]
+  }
+}
+
+Rules:
+- verdict: fit=suitable as-is; fit_after_fix=needs modification; not_fit=violates rules or fundamentally mismatched
+- key_issues: max 3, each must be SPECIFIC (not generic like "improve quality")
+- evidence_item_ids: MUST come from the cases provided in context; do NOT invent IDs
+- comment_participation_advice: if evidence is insufficient, set evidence_insufficient=true and confidence="insufficient", do NOT fabricate advice
+- Do NOT predict exact engagement numbers; use potential_value for value TYPE only
+"""
+
+
+# ============================================================
+# 规则式 fallback(Phase 1 实现,LLM 失败时降级)
+# ============================================================
+def _rule_based_analyze(
+    title: str,
+    selftext: str,
+    target_subreddit: str,
+    retrieval: RetrievalResult,
+    new_content_tags: dict,
+) -> dict:
+    """规则式判断 fallback。"""
+    new_product_visibility = new_content_tags.get("product_visibility", "none")
+    new_search_value = new_content_tags.get("search_value", "mid")
+    new_structure = new_content_tags.get("structure_tags", [])
+
+    rules = retrieval.rules_summary
+    commercial_restricted = rules.get("commercial_content_restricted", False)
+
+    issues = []
+    suggestions = []
+
+    # 检查1:产品露出过早
+    if new_product_visibility in ("explicit", "promotional"):
+        issues.append({
+            "issue": "开头直接出现产品/品牌,容易产生广告感",
+            "why": "该社区对商业内容限制较严,高表现案例中 product_visibility 多为 none/natural",
+            "evidence_type": ["community_rule", "high_performance_content"],
+            "evidence_item_ids": [c.reference_item_id for c in retrieval.similar_high[:2]],
+            "fix": "从具体问题/使用场景切入,在解决过程中自然带出产品",
+        })
+        suggestions.append({
+            "target": "opening",
+            "current": title[:80],
+            "suggested": "Start with a specific problem or use case, not the product",
+            "reason": "高表现案例多从具体问题切入",
+        })
+
+    # 检查2:标题模糊
+    if new_search_value == "low" and len(title) < 15:
+        issues.append({
+            "issue": "标题过于模糊,未体现用户关心的具体问题",
+            "why": "该社区高表现帖子标题多含具体问题或经验",
+            "evidence_type": ["similar_content"],
+            "evidence_item_ids": [c.reference_item_id for c in retrieval.similar_high[:1]],
+            "fix": "标题应直接体现用户会搜索的具体问题或场景",
+        })
+        suggestions.append({
+            "target": "title",
+            "current": title,
+            "suggested": "How I [specific action] with [specific tool/method]",
+            "reason": "问题型标题更接近用户搜索语言",
+        })
+
+    # 检查3:规则合规
+    if new_product_visibility == "promotional" and commercial_restricted:
+        issues.append({
+            "issue": "社区规则禁止自我推广/广告,当前内容会被删除",
+            "why": "该社区 rules 中明确禁止商业推广",
+            "evidence_type": ["community_rule"],
+            "evidence_item_ids": [],
+            "fix": "去除所有推广语言、折扣码、链接,改为纯经验分享",
+        })
+
+    # verdict
+    if any(i["evidence_type"] == ["community_rule"] for i in issues):
+        verdict = "not_fit"
+        verdict_reason = "违反社区商业内容规则,发布后大概率被删除"
+    elif issues:
+        verdict = "fit_after_fix"
+        verdict_reason = "内容方向相关但需调整"
+    else:
+        verdict = "fit"
+        verdict_reason = "内容主题、结构与社区历史高表现案例基本匹配"
+
+    # comment_participation_advice
+    if verdict == "not_fit":
+        comment_advice = {
+            "should_reply_natural_comments": False,
+            "should_supplement_own_comment": False,
+            "should_wait_for_natural_discussion": False,
+            "should_share_product_in_comments": False,
+            "should_participate_before_posting": False,
+            "confidence": "insufficient",
+            "reasoning": "内容不适合发布,无需评论参与建议",
+            "evidence_insufficient": True,
+        }
+    else:
+        comment_advice = {
+            "should_reply_natural_comments": True,
+            "should_supplement_own_comment": False,
+            "should_wait_for_natural_discussion": True,
+            "should_share_product_in_comments": False,
+            "should_participate_before_posting": False,
+            "confidence": "medium",
+            "reasoning": "基于该社区评论模式,用户多追问具体细节",
+            "evidence_insufficient": False,
+        }
+
+    # potential_value
+    value_types = ["interaction"]
+    if "?" in title or "how" in title.lower():
+        value_types.append("discussion")
+    if verdict == "fit":
+        value_types.append("community_penetration")
+
+    # evidence
+    evidence_item_ids = [c.reference_item_id for c in retrieval.similar_high] + \
+                         [c.reference_item_id for c in retrieval.similar_failure]
+    applied_patterns = [p.pattern_id for p in retrieval.fire_patterns] + \
+                       [p.pattern_id for p in retrieval.failure_patterns]
+
+    return {
+        "verdict": verdict,
+        "verdict_reason": verdict_reason,
+        "key_issues": issues[:3],
+        "modification_suggestions": suggestions,
+        "comment_participation_advice": comment_advice,
+        "potential_value": {
+            "value_types": value_types,
+            "reasoning": "基于内容结构和社区规律的规则式判断",
+        },
+        "evidence": {
+            "community_rule": commercial_restricted,
+            "similar_content_count": len(retrieval.similar_high) + len(retrieval.similar_failure),
+            "high_performance_count": len(retrieval.similar_high),
+            "mid_performance_count": 0,
+            "low_performance_count": len(retrieval.similar_failure),
+            "knowledge_patterns_applied": applied_patterns,
+        },
+        # 额外字段(用于落库,不在 schema 内)
+        "_evidence_item_ids": list(set(evidence_item_ids)),
+        "_applied_pattern_ids": applied_patterns,
+    }
+
+
+# ============================================================
+# LLM Analyzer 主流程
+# ============================================================
+_last_call_log: Optional[LLMCallLog] = None
+
+
+def get_last_call_log() -> Optional[LLMCallLog]:
+    return _last_call_log
 
 
 def analyze_new_content(
@@ -33,172 +248,110 @@ def analyze_new_content(
     image_description: Optional[str] = None,
     content_variables: Optional[dict] = None,
     env_variables: Optional[dict] = None,
+    use_llm: bool = True,
 ) -> ContentAnalysisSnapshot:
     """分析新内容是否适合目标社区,保存发布前快照(immutable)。
 
-    返回 ContentAnalysisSnapshot。
+    流程:
+    1. Classifier 给新内容打标签
+    2. Retrieval 召回上下文
+    3. LLM 综合判断(schema 校验 + fallback)
+    4. 保存发布前快照
+
+    Args:
+        use_llm: True=调 LLM; False=直接用规则式(测试/fallback)
     """
-    # 1. 召回社区画像
+    global _last_call_log
+
+    # 1. 验证社区已初始化
     with get_session() as s:
         profile = s.query(CommunityProfile).filter_by(subreddit=target_subreddit).first()
         if not profile:
             raise ValueError(f"社区画像不存在: {target_subreddit},请先初始化社区")
 
-        rules_summary = profile.rules_summary or {}
-        # 召回相关规律
-        all_patterns = s.query(KnowledgePattern).filter(
-            KnowledgePattern.applicable_conditions.contains({"subreddit": target_subreddit})
-        ).all()
+    # 2. 给新内容打标签(用 Classifier,但不落库——新内容不是 ReferenceItem)
+    new_content = f"{title}\n{selftext}"
+    new_content_tags = classifier_svc._rule_based_classify(title, selftext)
 
-        # 2. 相似召回(高/中/低/失败四档)
-        new_text = f"{title}\n{selftext}"
-        similar = embedder.find_similar(new_text, entity_type="reference_item", top_k=20)
-        similar_items = []
-        for eid, score in similar:
-            item = s.query(ReferenceItem).filter_by(id=eid).first()
-            if item:
-                pa = s.query(PerformanceAnalysis).filter_by(
-                    reference_item_id=item.id, is_current=True
-                ).first()
-                tier = pa.performance_tier if pa else "mid"
-                ca = s.query(ContentAnalysis).filter_by(
-                    reference_item_id=item.id, is_current=True
-                ).first()
-                similar_items.append({
-                    "item_id": item.id,
-                    "title": item.title[:80],
-                    "score": item.score,
-                    "tier": tier,
-                    "structure_tags": ca.structure_tags if ca else [],
-                    "product_visibility": ca.product_visibility if ca else None,
-                    "search_value": ca.search_value if ca else None,
-                    "similarity": round(score, 3),
-                })
+    # 添加关键词用于召回
+    keywords = set()
+    for word in title.lower().split():
+        if len(word) > 3:
+            keywords.add(word)
+    new_content_tags["keywords"] = list(keywords)
 
-        # 按 tier 分组对照
-        by_tier = {"high": [], "mid": [], "low": []}
-        for si in similar_items:
-            if si["tier"] in by_tier:
-                by_tier[si["tier"]].append(si)
+    # 3. Retrieval 召回
+    retrieval = retrieve_for_analysis(
+        subreddit=target_subreddit,
+        new_content=new_content,
+        new_content_tags=new_content_tags,
+    )
 
-    # 3. 新内容自身分析(用 classifier 的标签逻辑)
-    new_structure = classifier_svc._classify_structure(title, selftext)
-    new_product_visibility = classifier_svc._classify_product_visibility(title, selftext)
-    new_search_value = classifier_svc._classify_search_value(title, selftext)
-    new_topics = classifier_svc._extract_topics(title, selftext)
+    # 4. LLM 判断
+    result: dict
+    source: str
 
-    # 4. 五层证据 + 判断
-    # 规则层
-    rule_evidence = {
-        "commercial_restricted": rules_summary.get("commercial_content_restricted", False),
-        "link_restricted": rules_summary.get("link_restricted", False),
-        "flair_required": rules_summary.get("flair_required", False),
-    }
+    if use_llm:
+        provider = get_llm_provider()
+        context = retrieval.build_llm_context(new_content)
 
-    # 社区规律层:对比新内容结构 vs 社区高表现结构
-    community_structure_evidence = []
-    for st in (profile.common_structures or []):
-        community_structure_evidence.append(st)
-    high_structs = [st.get("structure") for st in (profile.common_structures or []) if st.get("count", 0) >= 2]
+        resp, log = provider.complete(
+            task="analyze",
+            system_prompt=ANALYZER_SYSTEM_PROMPT,
+            user_prompt=context,
+            model=settings.llm_analyzer_model,
+            temperature=settings.llm_temperature,
+            response_format="json",
+            max_tokens=2000,
+        )
+        _last_call_log = log
 
-    # 自有历史层:相似案例
-    history_evidence = similar_items[:5]
-
-    # 5. 判断逻辑(规则式第一阶段)
-    issues = []
-    suggestions = []
-    evidence_item_ids = [si["item_id"] for si in similar_items[:5]]
-    applied_pattern_ids = [p.id for p in all_patterns if p.status in ("candidate", "supported")][:3]
-
-    # 适配度判断
-    verdict = "fit"
-    verdict_reason = ""
-
-    # 检查1:产品露出过早(开头直接品牌/产品介绍)
-    if new_product_visibility in ("explicit", "promotional"):
-        issues.append({
-            "issue": "开头直接出现产品/品牌,容易产生广告感",
-            "detail": "该社区对商业内容限制较严(commercial_restricted=True),"
-                      "高表现案例中 product_visibility 多为 none/natural。"
-                      "当前内容 product_visibility=" + new_product_visibility + "。",
-            "fix": "建议从具体问题/使用场景切入,在解决过程中自然带出产品,而非开头直接介绍。",
-        })
-        suggestions.append("将产品介绍后移:先用具体问题或使用经历吸引读者,在解决过程中再自然提及产品。")
-        verdict = "fit_after_fix"
-        verdict_reason = "内容方向相关但产品露出方式需调整。"
-
-    # 检查2:标题是否接近用户搜索语言/是否模糊
-    if new_search_value == "low" and len(title) < 15:
-        issues.append({
-            "issue": "标题过于模糊,未体现用户关心的具体问题",
-            "detail": f"该社区高表现帖子标题多含具体问题或经验,"
-                      f"当前标题'{title[:40]}'过于宽泛。",
-            "fix": "标题应直接体现用户会搜索的具体问题或场景。",
-        })
-        suggestions.append("重写标题:将模糊表述改为具体问题,例如'How do I ...'或'What's the difference between X and Y'。")
-        if verdict == "fit":
-            verdict = "fit_after_fix"
-            verdict_reason = (verdict_reason + " " if verdict_reason else "") + "标题需更具体。"
-
-    # 检查3:内容结构 vs 社区偏好
-    if new_structure and new_structure[0] not in high_structs and high_structs:
-        issues.append({
-            "issue": f"内容结构({new_structure[0]})与该社区高互动内容的常见结构({','.join(high_structs[:3])})差异较大",
-            "detail": "基于历史案例,该社区高表现内容多采用特定结构。",
-            "fix": f"参考高表现案例的结构,如'具体问题 → 个人经历 → 解决过程'。",
-        })
-        if verdict == "fit":
-            verdict = "fit_after_fix"
-            verdict_reason = (verdict_reason + " " if verdict_reason else "") + "内容结构需调整。"
-
-    # 检查4:规则合规
-    if new_product_visibility == "promotional" and rule_evidence["commercial_restricted"]:
-        issues.append({
-            "issue": "社区规则禁止自我推广/广告,当前内容会被删除",
-            "detail": "该社区 rules 中明确 'No advertising/self-promotion'。",
-            "fix": "去除所有推广语言、折扣码、链接,改为纯经验分享或问题讨论。",
-        })
-        verdict = "not_fit"
-        verdict_reason = "违反社区商业内容规则,发布后大概率被删除。"
-
-    # 若无明显问题
-    if not issues:
-        verdict_reason = "内容主题、结构、产品露出方式与社区历史高表现案例基本匹配。"
-
-    # 评论参与建议
-    if verdict == "not_fit":
-        comment_advice = "不建议发布。如确需发布,需先按建议修改。"
-    elif new_structure and "question" in new_structure:
-        comment_advice = "发布后建议回复自然评论,主动回答用户追问;不建议人为制造互动。"
-    elif new_structure and "experience" in new_structure:
-        comment_advice = "发布后建议等待自然讨论,在评论中补充使用细节;适合主动回答用户问题。"
+        if resp.success and resp.parsed_json:
+            result, source = validate_and_fallback(
+                ANALYZER_SCHEMA,
+                resp.parsed_json,
+                lambda: _rule_based_analyze(
+                    title, selftext, target_subreddit, retrieval, new_content_tags
+                ),
+                context_label="analyzer",
+            )
+        else:
+            result = _rule_based_analyze(
+                title, selftext, target_subreddit, retrieval, new_content_tags
+            )
+            source = "rule_based_fallback"
     else:
-        comment_advice = "数据不足,无法判断评论参与策略。建议先观察该社区类似内容的评论模式。"
+        result = _rule_based_analyze(
+            title, selftext, target_subreddit, retrieval, new_content_tags
+        )
+        source = "rule_based_forced"
 
-    # 预测(低/中/高 + 依据)
-    if verdict == "not_fit":
-        predicted = "low"
-        prediction_basis = "违反社区规则,发布后大概率被删除。"
-    elif len(issues) >= 2:
-        predicted = "low"
-        prediction_basis = "存在多个关键问题,如不修改预计表现较差。"
-    elif verdict == "fit_after_fix":
-        predicted = "mid"
-        prediction_basis = "修改后预计具有中等互动潜力,基于历史相似案例。"
-    elif by_tier.get("high"):
-        predicted = "mid"
-        prediction_basis = f"存在 {len(by_tier['high'])} 个高表现相似案例,但样本量不足以精确预测。"
+    # 5. 提取 evidence_item_ids(校验:必须来自召回集)
+    retrieved_ids = retrieval.all_retrieved_item_ids
+    llm_evidence_ids = set()
+    for issue in result.get("key_issues", []):
+        for eid in issue.get("evidence_item_ids", []):
+            if eid in retrieved_ids:
+                llm_evidence_ids.add(eid)
+    # 补充 fallback 的 evidence
+    evidence_item_ids = list(llm_evidence_ids | set(result.get("_evidence_item_ids", [])))
+
+    applied_pattern_ids = result.get("evidence", {}).get("knowledge_patterns_applied", [])
+    applied_pattern_ids = result.get("_applied_pattern_ids", applied_pattern_ids)
+
+    # 6. 推断 model_version
+    if source == "llm":
+        model_version = f"llm_{settings.llm_provider}_{settings.llm_analyzer_model}"
     else:
-        predicted = "mid"
-        prediction_basis = "当前样本量不足,只能给出中等估计。"
+        model_version = f"{source}_v0.1"
 
-    # 补齐 content_variables / env_variables
+    # 7. 构建快照数据
     cv = content_variables or {
         "title": title,
-        "structure_tags": new_structure,
-        "product_visibility": new_product_visibility,
-        "search_value": new_search_value,
-        "topics": new_topics,
+        "structure_tags": new_content_tags.get("structure_tags", []),
+        "product_visibility": new_content_tags.get("product_visibility", "none"),
+        "search_value": new_content_tags.get("search_value", "mid"),
+        "topics": new_content_tags.get("topic_tags", []),
         "has_image": image_description is not None,
     }
     ev = env_variables or {
@@ -206,8 +359,18 @@ def analyze_new_content(
         "subreddit_type": profile.subreddit_type,
     }
 
-    # 6. 保存发布前快照(immutable)
-    content_hash = hashlib.sha256(f"{title}|{selftext}|{target_subreddit}".encode()).hexdigest()
+    # comment_participation_advice 转为字符串(Phase 1 snapshot 字段是 Text)
+    comment_advice = result.get("comment_participation_advice", {})
+    if isinstance(comment_advice, dict):
+        comment_advice_str = json.dumps(comment_advice, ensure_ascii=False)
+    else:
+        comment_advice_str = str(comment_advice)
+
+    content_hash = hashlib.sha256(
+        f"{title}|{selftext}|{target_subreddit}".encode()
+    ).hexdigest()
+
+    # 8. 保存发布前快照(immutable)
     with get_session() as s:
         snapshot = ContentAnalysisSnapshot(
             submitted_content_hash=content_hash,
@@ -220,18 +383,62 @@ def analyze_new_content(
             target_subreddit=target_subreddit,
             content_variables=cv,
             env_variables=ev,
-            verdict=verdict,
-            verdict_reason=verdict_reason,
-            key_issues=issues[:3],  # 最多 3 个最关键问题
-            modification_suggestions=suggestions,
-            comment_participation_advice=comment_advice,
+            verdict=result.get("verdict", "fit"),
+            verdict_reason=result.get("verdict_reason", ""),
+            key_issues=result.get("key_issues", [])[:3],
+            modification_suggestions=result.get("modification_suggestions", []),
+            comment_participation_advice=comment_advice_str,
             evidence_item_ids=evidence_item_ids,
             applied_pattern_ids=applied_pattern_ids,
-            predicted_engagement=predicted,
-            prediction_basis=prediction_basis,
-            model_version="rule_based_v0.1",
+            predicted_engagement=None,  # Phase 2 不做精确预测
+            prediction_basis=None,
+            model_version=model_version,
             created_at=datetime.utcnow(),
         )
         s.add(snapshot)
         s.flush()
         return snapshot
+
+
+# ============================================================
+# 人工修正入口
+# ============================================================
+def human_override_verdict(
+    snapshot_id: str,
+    verdict: Optional[str] = None,
+    verdict_reason: Optional[str] = None,
+    key_issues: Optional[list] = None,
+    modification_suggestions: Optional[list] = None,
+    override_reason: str = "",
+) -> ContentAnalysisSnapshot:
+    """人工修正发布前判断。
+
+    注意:原快照 immutable 不可改,这里创建新快照引用同一 submitted_content。
+    新快照 model_version 标记为 human_override。
+    """
+    with get_session() as s:
+        original = s.query(ContentAnalysisSnapshot).filter_by(id=snapshot_id).first()
+        if not original:
+            raise ValueError(f"快照不存在: {snapshot_id}")
+
+        new_snapshot = ContentAnalysisSnapshot(
+            submitted_content_hash=original.submitted_content_hash,
+            submitted_content=original.submitted_content,
+            target_subreddit=original.target_subreddit,
+            content_variables=original.content_variables,
+            env_variables=original.env_variables,
+            verdict=verdict if verdict is not None else original.verdict,
+            verdict_reason=verdict_reason if verdict_reason is not None else original.verdict_reason,
+            key_issues=key_issues if key_issues is not None else original.key_issues,
+            modification_suggestions=modification_suggestions if modification_suggestions is not None else original.modification_suggestions,
+            comment_participation_advice=original.comment_participation_advice,
+            evidence_item_ids=original.evidence_item_ids,
+            applied_pattern_ids=original.applied_pattern_ids,
+            predicted_engagement=None,
+            prediction_basis=None,
+            model_version=f"human_override_{override_reason or 'manual'}"[:60],
+            created_at=datetime.utcnow(),
+        )
+        s.add(new_snapshot)
+        s.flush()
+        return new_snapshot

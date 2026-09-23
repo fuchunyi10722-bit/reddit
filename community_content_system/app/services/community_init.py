@@ -193,8 +193,8 @@ def init_community(subreddit: str) -> CommunityProfile:
     # Step 4: PerformanceClassifier 分层
     performance.tier_items(subreddit, all_ref_ids)
 
-    # Step 5: Classifier 打标签
-    classifier.label_items(all_ref_ids)
+    # Step 5: Classifier 打标签(LLM 版,失败自动降级规则式)
+    classifier.label_items(all_ref_ids, use_llm=True)
 
     # Step 6: Embedding 生成
     for ref in unique_refs:
@@ -226,7 +226,7 @@ def init_community(subreddit: str) -> CommunityProfile:
     # 对 Search 新增的帖子也分层 + 打标签 + embedding
     if search_new_ids:
         performance.tier_items(subreddit, search_new_ids)
-        classifier.label_items(search_new_ids)
+        classifier.label_items(search_new_ids, use_llm=True)
         for r in search_refs:
             if r.id in search_new_ids:
                 text = f"{r.title}\n{r.selftext}"

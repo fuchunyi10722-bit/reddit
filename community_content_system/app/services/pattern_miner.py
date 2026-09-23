@@ -266,3 +266,76 @@ def get_patterns_for_subreddit(subreddit: str, status: Optional[str] = None) -> 
         if status:
             q = q.filter_by(status=status)
         return q.all()
+
+
+def human_confirm_validation(
+    pattern_id: str,
+    case_item_id: str,
+    outcome: str,  # confirmed | contradicted | inconclusive
+    reviewer: str = "",
+    note: str = "",
+) -> KnowledgePattern:
+    """人工确认某次验证是否构成有效证据。
+
+    AI 不能自行把一次结果认定为"规律已验证"。
+    人工确认后,调用 record_validation 追加到 validation_history,
+    再由 update_pattern_status 判断是否状态迁移。
+
+    Args:
+        pattern_id: KnowledgePattern.id
+        case_item_id: 关联的 ReferenceItem.id
+        outcome: confirmed(验证) | contradicted(反驳) | inconclusive(无法判定)
+        reviewer: 人工确认者
+        note: 备注
+    """
+    if outcome not in ("confirmed", "contradicted", "inconclusive"):
+        raise ValueError(f"outcome 必须是 confirmed|contradicted|inconclusive,实际: {outcome}")
+
+    kp = record_validation(
+        pattern_id=pattern_id,
+        case_item_id=case_item_id,
+        outcome=outcome,
+        review_id=None,
+        note=f"human_confirmed_by={reviewer}; {note}",
+    )
+    # 累计后尝试状态迁移
+    return update_pattern_status(pattern_id)
+
+
+def human_override_pattern_status(
+    pattern_id: str,
+    new_status: str,
+    reason: str = "",
+) -> KnowledgePattern:
+    """人工强制覆盖规律状态(谨慎使用)。
+
+    用于:
+    - 规律明显错误,需直接标记 refuted
+    - 规律已被充分验证,需直接标记 supported
+
+    记录覆盖原因到 validation_history(审计)。
+    """
+    if new_status not in ("candidate", "supported", "refuted", "inconclusive"):
+        raise ValueError(f"new_status 非法: {new_status}")
+
+    with get_session() as s:
+        kp = s.query(KnowledgePattern).filter_by(id=pattern_id).first()
+        if not kp:
+            raise ValueError(f"KnowledgePattern 不存在: {pattern_id}")
+
+        old_status = kp.status
+        kp.status = new_status
+
+        # 审计记录
+        history = list(kp.validation_history or [])
+        history.append({
+            "case_item_id": None,
+            "outcome": "human_override",
+            "review_id": None,
+            "validated_at": datetime.utcnow().isoformat(),
+            "note": f"human_override: {old_status} → {new_status}; reason={reason}",
+        })
+        kp.validation_history = history
+        kp.last_validated_at = datetime.utcnow()
+        s.flush()
+        return kp

@@ -34,9 +34,19 @@ class Settings(BaseSettings):
     reddit_password: str = ""
     reddit_user_agent: str = "platform:community-content-system:v0.1 (by /u/placeholder)"
 
-    # LLM 调用配置(打标签/提炼规律/新内容判断)
-    llm_model: str = "gpt-4o-mini"
-    llm_api_base: str = ""
+    # LLM Provider 配置
+    # 沙箱无 Ollama 也无付费凭据时用 mock(确定性规则输出,验证链路)
+    # 部署到有 Ollama 的机器:llm_provider=ollama
+    # 接付费 API:llm_provider=openai_compatible + base_url + api_key
+    llm_provider: str = "mock"  # mock | ollama | openai_compatible
+    llm_classifier_model: str = "qwen2.5:7b"          # Classifier 用轻量本地模型
+    llm_analyzer_model: str = "qwen2.5:14b"          # ContentAnalyzer 用较强本地模型
+    llm_api_base: str = "http://localhost:11434"     # Ollama 默认地址
+    llm_api_key: str = ""                            # 付费 provider 用
+    llm_timeout: int = 120
+    llm_retries: int = 2
+    llm_temperature: float = 0.3
+    llm_prompt_version: str = "v2.1"
 
     # Embedding 配置
     embedding_model: str = "text-embedding-3-small"
