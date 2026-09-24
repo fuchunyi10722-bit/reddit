@@ -3,6 +3,8 @@ uvicorn[standard]>=0.27
 sqlalchemy>=2.0
 pydantic>=2.6
 pydantic-settings>=2.2
+requests>=2.31
+praw>=7.7
 # 生产环境用 PostgreSQL + pgvector;开发沙箱回退 SQLite + JSON 向量
 # psycopg[binary]>=3.1
 # pgvector>=0.2.4
