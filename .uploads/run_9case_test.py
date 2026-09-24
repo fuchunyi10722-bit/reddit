@@ -1,0 +1,516 @@
+import json, time, sys, os
+import urllib.request
+
+BASE = "http://localhost:11434"
+MODEL = "qwen2.5:7b"
+
+SYS = """You are a Reddit content analyst for a label printer product (NIIMBOT).
+You help decide whether planned content fits a target subreddit and how to improve it.
+Output valid JSON only, no markdown, no explanation.
+
+Schema:
+{"verdict":"fit|fit_after_fix|not_fit","verdict_reason":"string","key_issues":[{"issue":"specific problem","why":"why this is a problem in THIS community","evidence_type":["community_rule","similar_content","high_performance_content","low_performance_content","knowledge_pattern"],"evidence_item_ids":["id1"],"fix":"specific actionable fix"}],"modification_suggestions":[{"target":"title|body","current":"whats wrong","suggested":"replacement","reason":"why better"}],"comment_participation_advice":{"should_reply_natural_comments":true,"should_supplement_own_comment":false,"should_wait_for_natural_discussion":true,"should_share_product_in_comments":false,"should_participate_before_posting":false,"confidence":"high|medium|low|insufficient","reasoning":"based on","evidence_insufficient":false},"potential_value":{"value_types":["interaction","discussion","search","product_awareness","community_penetration"],"reasoning":"based on"},"evidence":{"community_rule":true,"similar_content_count":5,"high_performance_count":2,"mid_performance_count":2,"low_performance_count":1,"knowledge_patterns_applied":["pattern_id1"]}}
+
+Rules:
+- verdict: fit=suitable as-is; fit_after_fix=needs modification; not_fit=violates rules or fundamentally mismatched
+- Base your verdict, key_issues, and suggestions PRIMARILY on the evidence provided in the context above (community rules, similar posts, patterns). Do NOT apply generic Reddit advice that is not supported by the provided evidence for THIS community.
+- key_issues: max 3, each must be SPECIFIC to THIS community (not generic like "improve quality")
+- evidence_item_ids: MUST be EXACT strings copied from the context above. Each evidence in context is prefixed with its id:
+    - Rules: "rule_id=<rule short_name>" -> use the short_name (e.g. "Report Your Affiliations")
+    - Cases: "id=<UUID>" -> use the full UUID
+    - Patterns: "pattern_id=<UUID>" -> use the full UUID
+  Do NOT invent IDs, do NOT use field names like "common_structures" or "similar_content_count" as IDs.
+  The context provides an ALLOWED EVIDENCE_ITEM_IDS section listing every valid ID - ONLY use IDs from that list.
+- comment_participation_advice: if evidence insufficient, set evidence_insufficient=true and confidence="insufficient", do NOT fabricate advice
+- Do NOT predict exact engagement numbers; use potential_value for value TYPE only"""
+
+# 9 条测试数据(由沙箱内真实 Retrieval 生成,每条都有 user_prompt + allowed_ids)
+TEST_DATA = [
+  {
+    "test_id": "T1_experience",
+    "subreddit": "organization",
+    "title": "Finally organized my pantry with a label maker — here's what I learned",
+    "selftext": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+    "new_content_tags": {
+      "topic_tags": [
+        "organizing",
+        "labeling"
+      ],
+      "scenario_tags": [],
+      "structure_tags": [
+        "experience"
+      ],
+      "product_visibility": "subtle",
+      "brand_mentions": [],
+      "search_value": "mid",
+      "search_value_reasoning": "rule_based_fallback"
+    },
+    "user_prompt": "=== COMMUNITY RULES ===\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'organizing', 'count': 100}, {'topic': 'business', 'count': 9}, {'topic': 'craft', 'count': 7}, {'topic': 'baking', 'count': 7}, {'topic': 'label', 'count': 6}, {'topic': 'python', 'count': 1}]\ncommon_structures: [{'structure': 'experience', 'count': 84}, {'structure': 'question', 'count': 80}, {'structure': 'promotional', 'count': 6}]\nproduct_acceptance: {'high': {'none': 26, 'subtle': 1}, 'mid': {'none': 47, 'natural': 1}, 'low': {'none': 24, 'explicit': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\nid=8fcf6d81-d364-43bd-8bbf-dcc012a1da78 | [high, score=72, comments=38] Partners with a Very Different View of \"Stuff\" | structure=question,experience, product=none, search=low, topics=organizing\nid=7dc37656-13ab-49a3-b042-8b2570cae0ca | [high, score=186, comments=25] Polishing clear plastic shoe boxes | structure=experience,promotional, product=none, search=low, topics=organizing,label\nid=4580832a-ffdd-4c06-8881-942ca35d17ea | [high, score=127, comments=37] Update: Craft Office Room Organization/Ideas | structure=question,experience, product=none, search=low, topics=organizing,craft\n\n=== SIMILAR FAILURE/LOW CASES ===\nid=4b859a76-188f-4473-8a8d-310140f53250 | [failure, score=15, comments=17] Specific label size? | structure=question,experience, product=explicit, search=mid, topics=organizing,label\nid=547488cf-a2aa-4cfc-bb1e-821f107438c6 | [failure, score=15, comments=6] Bleach bottle with measuring cap | structure=question,experience, product=none, search=high, topics=organizing\n\n=== KNOWLEDGE PATTERNS ===\npattern_id=c1b1b19f-67a2-4e79-ae09-51c9b389e39f | [fire, status=candidate, samples=48] mid tier 帖子中,question 结构出现 45/48 次。代表性帖子: Mug Risers for Kitchen Cabinets?\npattern_id=48fcee6f-d22b-4aba-98bb-8197699e82a7 | [fire, status=candidate, samples=27] high tier 帖子中,experience 结构出现 25/27 次。代表性帖子: When you need a container for your containers, they’ve become clutter.\npattern_id=9287b90e-e27d-44f1-aea6-a932a0d26490 | [search, status=candidate, samples=9] 高搜索价值(search_value=high)帖子中,question 结构出现 9/9 次。更接近用户搜索语言 + 完整回答具体问题。\npattern_id=db52ddb7-6f18-4424-95b6-da6809f128ad | [failure, status=candidate, samples=25] low tier 帖子中,question 结构出现 22/25 次。代表性帖子: Ideas to Secure Storage?\n\n=== NEW CONTENT TO ANALYZE ===\nFinally organized my pantry with a label maker — here's what I learned\nI've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.\n\n=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===\n4580832a-ffdd-4c06-8881-942ca35d17ea, 48fcee6f-d22b-4aba-98bb-8197699e82a7, 4b859a76-188f-4473-8a8d-310140f53250, 547488cf-a2aa-4cfc-bb1e-821f107438c6, 7dc37656-13ab-49a3-b042-8b2570cae0ca, 8fcf6d81-d364-43bd-8bbf-dcc012a1da78, 9287b90e-e27d-44f1-aea6-a932a0d26490, c1b1b19f-67a2-4e79-ae09-51c9b389e39f, db52ddb7-6f18-4424-95b6-da6809f128ad",
+    "allowed_ids": [
+      "4580832a-ffdd-4c06-8881-942ca35d17ea",
+      "48fcee6f-d22b-4aba-98bb-8197699e82a7",
+      "4b859a76-188f-4473-8a8d-310140f53250",
+      "547488cf-a2aa-4cfc-bb1e-821f107438c6",
+      "7dc37656-13ab-49a3-b042-8b2570cae0ca",
+      "8fcf6d81-d364-43bd-8bbf-dcc012a1da78",
+      "9287b90e-e27d-44f1-aea6-a932a0d26490",
+      "c1b1b19f-67a2-4e79-ae09-51c9b389e39f",
+      "db52ddb7-6f18-4424-95b6-da6809f128ad"
+    ],
+    "retrieval_stats": {
+      "high_count": 3,
+      "failure_count": 2,
+      "fire_patterns": 2,
+      "search_patterns": 1,
+      "failure_patterns": 1,
+      "rules_count": 0
+    }
+  },
+  {
+    "test_id": "T2_question",
+    "subreddit": "organization",
+    "title": "Looking for recommendations: label maker for organizing my home office files?",
+    "selftext": "Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+    "new_content_tags": {
+      "topic_tags": [
+        "organizing",
+        "labeling"
+      ],
+      "scenario_tags": [],
+      "structure_tags": [
+        "question"
+      ],
+      "product_visibility": "none",
+      "brand_mentions": [],
+      "search_value": "mid",
+      "search_value_reasoning": "rule_based_fallback"
+    },
+    "user_prompt": "=== COMMUNITY RULES ===\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'organizing', 'count': 100}, {'topic': 'business', 'count': 9}, {'topic': 'craft', 'count': 7}, {'topic': 'baking', 'count': 7}, {'topic': 'label', 'count': 6}, {'topic': 'python', 'count': 1}]\ncommon_structures: [{'structure': 'experience', 'count': 84}, {'structure': 'question', 'count': 80}, {'structure': 'promotional', 'count': 6}]\nproduct_acceptance: {'high': {'none': 26, 'subtle': 1}, 'mid': {'none': 47, 'natural': 1}, 'low': {'none': 24, 'explicit': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\nid=4580832a-ffdd-4c06-8881-942ca35d17ea | [high, score=127, comments=37] Update: Craft Office Room Organization/Ideas | structure=question,experience, product=none, search=low, topics=organizing,craft\nid=8fcf6d81-d364-43bd-8bbf-dcc012a1da78 | [high, score=72, comments=38] Partners with a Very Different View of \"Stuff\" | structure=question,experience, product=none, search=low, topics=organizing\nid=9ae702d4-5c53-4e35-8473-3463ea5cf346 | [high, score=72, comments=5] Makeup organization for ultimate efficiency in a small space (the ADHD edition) | structure=question,experience, product=none, search=mid, topics=organizing,business\n\n=== SIMILAR FAILURE/LOW CASES ===\nid=4b859a76-188f-4473-8a8d-310140f53250 | [failure, score=15, comments=17] Specific label size? | structure=question,experience, product=explicit, search=mid, topics=organizing,label\nid=cadd3620-6272-4015-bd3f-7e2ac520f8d3 | [failure, score=13, comments=15] Tall entry closet solutions? | structure=question,experience, product=none, search=mid, topics=organizing\n\n=== KNOWLEDGE PATTERNS ===\npattern_id=c1b1b19f-67a2-4e79-ae09-51c9b389e39f | [fire, status=candidate, samples=48] mid tier 帖子中,question 结构出现 45/48 次。代表性帖子: Mug Risers for Kitchen Cabinets?\npattern_id=48fcee6f-d22b-4aba-98bb-8197699e82a7 | [fire, status=candidate, samples=27] high tier 帖子中,experience 结构出现 25/27 次。代表性帖子: When you need a container for your containers, they’ve become clutter.\npattern_id=9287b90e-e27d-44f1-aea6-a932a0d26490 | [search, status=candidate, samples=9] 高搜索价值(search_value=high)帖子中,question 结构出现 9/9 次。更接近用户搜索语言 + 完整回答具体问题。\npattern_id=db52ddb7-6f18-4424-95b6-da6809f128ad | [failure, status=candidate, samples=25] low tier 帖子中,question 结构出现 22/25 次。代表性帖子: Ideas to Secure Storage?\n\n=== NEW CONTENT TO ANALYZE ===\nLooking for recommendations: label maker for organizing my home office files?\nSetting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.\n\n=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===\n4580832a-ffdd-4c06-8881-942ca35d17ea, 48fcee6f-d22b-4aba-98bb-8197699e82a7, 4b859a76-188f-4473-8a8d-310140f53250, 8fcf6d81-d364-43bd-8bbf-dcc012a1da78, 9287b90e-e27d-44f1-aea6-a932a0d26490, 9ae702d4-5c53-4e35-8473-3463ea5cf346, c1b1b19f-67a2-4e79-ae09-51c9b389e39f, cadd3620-6272-4015-bd3f-7e2ac520f8d3, db52ddb7-6f18-4424-95b6-da6809f128ad",
+    "allowed_ids": [
+      "4580832a-ffdd-4c06-8881-942ca35d17ea",
+      "48fcee6f-d22b-4aba-98bb-8197699e82a7",
+      "4b859a76-188f-4473-8a8d-310140f53250",
+      "8fcf6d81-d364-43bd-8bbf-dcc012a1da78",
+      "9287b90e-e27d-44f1-aea6-a932a0d26490",
+      "9ae702d4-5c53-4e35-8473-3463ea5cf346",
+      "c1b1b19f-67a2-4e79-ae09-51c9b389e39f",
+      "cadd3620-6272-4015-bd3f-7e2ac520f8d3",
+      "db52ddb7-6f18-4424-95b6-da6809f128ad"
+    ],
+    "retrieval_stats": {
+      "high_count": 3,
+      "failure_count": 2,
+      "fire_patterns": 2,
+      "search_patterns": 1,
+      "failure_patterns": 1,
+      "rules_count": 0
+    }
+  },
+  {
+    "test_id": "T3_promotional",
+    "subreddit": "organization",
+    "title": "The Niimbot label printer changed my organizing game — 40% off this week!",
+    "selftext": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+    "new_content_tags": {
+      "topic_tags": [
+        "organizing",
+        "labeling"
+      ],
+      "scenario_tags": [],
+      "structure_tags": [
+        "promotional"
+      ],
+      "product_visibility": "promotional",
+      "brand_mentions": [],
+      "search_value": "low",
+      "search_value_reasoning": "rule_based_fallback"
+    },
+    "user_prompt": "=== COMMUNITY RULES ===\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'organizing', 'count': 100}, {'topic': 'business', 'count': 9}, {'topic': 'craft', 'count': 7}, {'topic': 'baking', 'count': 7}, {'topic': 'label', 'count': 6}, {'topic': 'python', 'count': 1}]\ncommon_structures: [{'structure': 'experience', 'count': 84}, {'structure': 'question', 'count': 80}, {'structure': 'promotional', 'count': 6}]\nproduct_acceptance: {'high': {'none': 26, 'subtle': 1}, 'mid': {'none': 47, 'natural': 1}, 'low': {'none': 24, 'explicit': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\nid=7dc37656-13ab-49a3-b042-8b2570cae0ca | [high, score=186, comments=25] Polishing clear plastic shoe boxes | structure=experience,promotional, product=none, search=low, topics=organizing,label\nid=8fcf6d81-d364-43bd-8bbf-dcc012a1da78 | [high, score=72, comments=38] Partners with a Very Different View of \"Stuff\" | structure=question,experience, product=none, search=low, topics=organizing\nid=9ae702d4-5c53-4e35-8473-3463ea5cf346 | [high, score=72, comments=5] Makeup organization for ultimate efficiency in a small space (the ADHD edition) | structure=question,experience, product=none, search=mid, topics=organizing,business\n\n=== SIMILAR FAILURE/LOW CASES ===\nid=4b859a76-188f-4473-8a8d-310140f53250 | [failure, score=15, comments=17] Specific label size? | structure=question,experience, product=explicit, search=mid, topics=organizing,label\nid=20e08bec-4862-43a2-a91d-9d7ca31fc9e0 | [failure, score=9, comments=9] Nut organizer for counter top? | structure=question,experience,promotional, product=none, search=high, topics=organizing\n\n=== KNOWLEDGE PATTERNS ===\npattern_id=c1b1b19f-67a2-4e79-ae09-51c9b389e39f | [fire, status=candidate, samples=48] mid tier 帖子中,question 结构出现 45/48 次。代表性帖子: Mug Risers for Kitchen Cabinets?\npattern_id=48fcee6f-d22b-4aba-98bb-8197699e82a7 | [fire, status=candidate, samples=27] high tier 帖子中,experience 结构出现 25/27 次。代表性帖子: When you need a container for your containers, they’ve become clutter.\npattern_id=9287b90e-e27d-44f1-aea6-a932a0d26490 | [search, status=candidate, samples=9] 高搜索价值(search_value=high)帖子中,question 结构出现 9/9 次。更接近用户搜索语言 + 完整回答具体问题。\npattern_id=db52ddb7-6f18-4424-95b6-da6809f128ad | [failure, status=candidate, samples=25] low tier 帖子中,question 结构出现 22/25 次。代表性帖子: Ideas to Secure Storage?\n\n=== NEW CONTENT TO ANALYZE ===\nThe Niimbot label printer changed my organizing game — 40% off this week!\nJust sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.\n\n=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===\n20e08bec-4862-43a2-a91d-9d7ca31fc9e0, 48fcee6f-d22b-4aba-98bb-8197699e82a7, 4b859a76-188f-4473-8a8d-310140f53250, 7dc37656-13ab-49a3-b042-8b2570cae0ca, 8fcf6d81-d364-43bd-8bbf-dcc012a1da78, 9287b90e-e27d-44f1-aea6-a932a0d26490, 9ae702d4-5c53-4e35-8473-3463ea5cf346, c1b1b19f-67a2-4e79-ae09-51c9b389e39f, db52ddb7-6f18-4424-95b6-da6809f128ad",
+    "allowed_ids": [
+      "20e08bec-4862-43a2-a91d-9d7ca31fc9e0",
+      "48fcee6f-d22b-4aba-98bb-8197699e82a7",
+      "4b859a76-188f-4473-8a8d-310140f53250",
+      "7dc37656-13ab-49a3-b042-8b2570cae0ca",
+      "8fcf6d81-d364-43bd-8bbf-dcc012a1da78",
+      "9287b90e-e27d-44f1-aea6-a932a0d26490",
+      "9ae702d4-5c53-4e35-8473-3463ea5cf346",
+      "c1b1b19f-67a2-4e79-ae09-51c9b389e39f",
+      "db52ddb7-6f18-4424-95b6-da6809f128ad"
+    ],
+    "retrieval_stats": {
+      "high_count": 3,
+      "failure_count": 2,
+      "fire_patterns": 2,
+      "search_patterns": 1,
+      "failure_patterns": 1,
+      "rules_count": 0
+    }
+  },
+  {
+    "test_id": "T1_experience",
+    "subreddit": "Etsy",
+    "title": "Finally organized my pantry with a label maker — here's what I learned",
+    "selftext": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+    "new_content_tags": {
+      "topic_tags": [
+        "organizing",
+        "labeling"
+      ],
+      "scenario_tags": [],
+      "structure_tags": [
+        "experience"
+      ],
+      "product_visibility": "subtle",
+      "brand_mentions": [],
+      "search_value": "mid",
+      "search_value_reasoning": "rule_based_fallback"
+    },
+    "user_prompt": "=== COMMUNITY RULES ===\nrule_id=No Shameless Plugs, Promotional Content, or Referral Links | We do not allow promotion of any kind here.  This includes shops, listings, and seller tools / services - whether directly linked or not.  All of this must go in the weekly stickied promotional post.  Shop links as user flair are acceptable.\n\nPlease do not post referral links for Etsy or another service. If someone requests a code for free listings PM them the link.\nIf you offer a service for Etsy sellers, post your info in the weekly Share Your Stuff thread.\nrule_id=Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays | Shop critique requests and requests for feedback are allowed on FRIDAYS ONLY.  Please follow the guideline post linked here in order to post a shop feedback request.\n\nShop critique requests and requests for feedback are allowed on FRIDAYS ONLY.  Please follow the guideline post linked here in order to post a shop feedback request.\n\nhttps://www.reddit.com/r/Etsy/comments/14ylt9c/feedback_fridays_guidelines_for_creating_a_shop/\nrule_id=READ THE FAQ FIRST!  No Low Effort Content / Misinformation | Please read the stickied FAQ post and use the sub search feature before posting!  Many questions have been asked and answered before!  Repetitive posts may be occasionally be removed at moderator discretion.\n\nAdditionally, please keep content helpful and constructive. Misinformation is subject to removal. \n Repetitive rants &amp; complaints may also be removed. If you are just here to complain, please do not participate as we want to keep the content of this sub helpful for those needing advice.\nrule_id=Weird messages from \"Etsy support\" / Scam Attempts | If you got a weird message from \"Etsy support\", you are not alone. We are currently getting posts just about every hour asking about these messages. THEY ARE SCAM ATTEMPTS. Full details here, and please do not create new separate posts asking about them.\n\nhttps://www.reddit.com/r/EtsySellers/comments/15ng6bm/a_guide_to_scam_attempts_on_etsy/\nrule_id=No Trademark/Copyright Takedown Questions | Asking why there is copyright infringement on Etsy is a super common question here.  The answers are always the same, so here's a link to the answer:\nhttps://www.reddit.com/r/Etsy/comments/1cxylia/what_actually_is_etsys_ip_policy/\nNote that we do not allow encouraging violating copyright here. \nrule_id=No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context | Blog posts go in the share your stuff thread. No asking for free products in posts, comments, or PM.\nPosting your personal, non-Etsy shop or your shop in addition to Etsy is okay. Drive by spammers who post links to non-Etsy e-commerce venues will be banned.  Links posted with no context or poorly explained context, or posts not directly relevant to Etsy, will be removed.\nrule_id=Remember the Golden Rule and Don't Be a Dick | This subreddit is a place free of excessive cynicism, negativity and bitterness. Healthy criticism and skepticism is fine under certain circumstances, but toxic attitudes, rudeness, and nastiness are not welcome here.\n \nWe realize Etsy can be frustrating to maneuver, but creating an excessively negative impression for customers harms all shops. \n\nAlso: no naming shops or individuals suggesting they are scammers.  This is not allowed per Reddit's anti-doxxing policies.\nrule_id=Please Post Surveys and Seller Tools in the Share Your Stuff Thread | If you are doing research for school, a magazine, etc. or are studying buyers, sellers, marketing, etc, please feel free to post your survey ONLY in the Share Your Stuff thread.  The same applies if you are looking for feedback on, testers for, or to promote a tool for sellers.\nrule_id=No Asking for General Newbie Advice/Asking What You Should Sell | If you are just starting out, please read the Etsy Seller Handbook for advice and guidance on opening an Etsy shop. You may also utilize the search subreddit feature to see responses to this type of post in the past.\n\nEtsy is for handmade items, vintage, or craft supplies. If your item or idea is one of these things, great! Start a store. What determines success is how hard you're willing to work and learn about Etsy. Start your store then hit up the monthly critique thread for help.\nrule_id=Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale | We love to celebrate, so post to let us know about your 100th, 1,000th, 10,000th, and 100,000th sales *only*. Please follow the rules outlined in [this post](https://old.reddit.com/r/Etsy/comments/hu970w/survey_results/?) when you hit these milestones.\nrule_id=No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations | We are trying to make money by selling handmade or designed items on Etsy. If you're found to be reselling factory produced items you will be banned. Proof is necessary for reselling claims.\n\nPlease don’t post on here asking how to skirt Etsy’s Prohibited Items or other policies, which includes reselling and copyright items. They are prohibited for a reason.\n\nPosts or comments which advocate for violating Etsy policy or the law will be removed and will result in a permanent ban.\nrule_id=No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging | Please do not ask how to export previous buyers' email addresses for the purposes of sending them a newsletter. Buyers must opt in to any newsletters. Signing them up on their behalf violates Etsy's TOS and GDPR.\n\nDon't ask how to turn favorites into sales. Contacting people who favorite your items is SPAM and against Etsy’s policies. Do not do this.\nrule_id=Account Suspension Posts | There are many reasons why a shop or account may be suspended. Please thoroughly read and go through the checklist post here (https://www.reddit.com/r/Etsy/comments/uwrqck/account_suspension_help_checklist/ )  Your question is almost certainly covered here.  If it is not, please reach out to us via modmail.\nrule_id=No AI written content | We've been hit by waves of bot accounts posting duplicate AI written content, including posts and comments.  This is not allowed here.  Please write your own content if you want to contribute.\n\nViolating this rule will result in a warning.  After that, it's a ban from the sub.\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: True\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'business', 'count': 172}, {'topic': 'craft', 'count': 25}, {'topic': 'label', 'count': 11}, {'topic': 'python', 'count': 3}, {'topic': 'gardening', 'count': 2}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'experience', 'count': 167}, {'structure': 'question', 'count': 153}, {'structure': 'promotional', 'count': 53}]\nproduct_acceptance: {'high': {'none': 42, 'natural': 1}, 'mid': {'none': 106, 'natural': 1, 'subtle': 1}, 'low': {'none': 21}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\nid=abb0e28f-fd99-4673-bb9d-31547e977ba1 | [high, score=33, comments=17] FAQs - Please start here before making a post! | structure=question,experience,promotional, product=none, search=mid, topics=business,craft\nid=eabd0fc1-744b-435c-8141-572afd782c26 | [high, score=165, comments=47] Etsy 'mistakenly' suspended my account for 1.5 months, then charged me $500 in fees by reactivating  | structure=question,experience,promotional, product=none, search=mid, topics=business\nid=a70f3127-1a8b-4264-ae7d-1e9a25b83939 | [high, score=163, comments=110] Giving up hope on Etsy - any thoughts? | structure=question,experience,promotional, product=none, search=mid, topics=business\n\n=== SIMILAR FAILURE/LOW CASES ===\nid=3b155ed4-11a2-41f6-9ad3-15b61fa944c1 | [failure, score=0, comments=32] Etsy shop owner not responding? | structure=question,experience,promotional, product=none, search=mid, topics=business,craft\nid=e9eaf7aa-13bb-428f-9da6-b38aac75b176 | [failure, score=0, comments=15] Do I have to return an item after I got a refund due to having to open a case? Am I being scammed? | structure=question,experience, product=none, search=mid, topics=business,craft\n\n=== KNOWLEDGE PATTERNS ===\npattern_id=89a8acf0-1861-4686-97aa-7a32c3a4a03a | [fire, status=candidate, samples=108] mid tier 帖子中,experience 结构出现 105/108 次。代表性帖子: Etsy Rug Return - Am I Bones?\npattern_id=5c2523f8-f87e-4c16-a294-f3e21a8ec732 | [fire, status=candidate, samples=43] high tier 帖子中,experience 结构出现 41/43 次。代表性帖子: Does anyone REAL sell clothing anymore?\npattern_id=e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150 | [search, status=candidate, samples=8] 高搜索价值(search_value=high)帖子中,question 结构出现 8/8 次。更接近用户搜索语言 + 完整回答具体问题。\npattern_id=d31a0472-8803-469a-8990-1ca1fd2be289 | [failure, status=candidate, samples=21] low tier 帖子中,experience 结构出现 21/21 次。代表性帖子: Anyone bought from Sayonarin?\n\n=== NEW CONTENT TO ANALYZE ===\nFinally organized my pantry with a label maker — here's what I learned\nI've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.\n\n=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===\n3b155ed4-11a2-41f6-9ad3-15b61fa944c1, 5c2523f8-f87e-4c16-a294-f3e21a8ec732, 89a8acf0-1861-4686-97aa-7a32c3a4a03a, Account Suspension Posts, Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale, Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays, No AI written content, No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging, No Asking for General Newbie Advice/Asking What You Should Sell, No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context, No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations, No Shameless Plugs, Promotional Content, or Referral Links, No Trademark/Copyright Takedown Questions, Please Post Surveys and Seller Tools in the Share Your Stuff Thread, READ THE FAQ FIRST!  No Low Effort Content / Misinformation, Remember the Golden Rule and Don't Be a Dick, Weird messages from \"Etsy support\" / Scam Attempts, a70f3127-1a8b-4264-ae7d-1e9a25b83939, abb0e28f-fd99-4673-bb9d-31547e977ba1, d31a0472-8803-469a-8990-1ca1fd2be289, e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150, e9eaf7aa-13bb-428f-9da6-b38aac75b176, eabd0fc1-744b-435c-8141-572afd782c26",
+    "allowed_ids": [
+      "3b155ed4-11a2-41f6-9ad3-15b61fa944c1",
+      "5c2523f8-f87e-4c16-a294-f3e21a8ec732",
+      "89a8acf0-1861-4686-97aa-7a32c3a4a03a",
+      "Account Suspension Posts",
+      "Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale",
+      "Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays",
+      "No AI written content",
+      "No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging",
+      "No Asking for General Newbie Advice/Asking What You Should Sell",
+      "No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context",
+      "No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations",
+      "No Shameless Plugs, Promotional Content, or Referral Links",
+      "No Trademark/Copyright Takedown Questions",
+      "Please Post Surveys and Seller Tools in the Share Your Stuff Thread",
+      "READ THE FAQ FIRST!  No Low Effort Content / Misinformation",
+      "Remember the Golden Rule and Don't Be a Dick",
+      "Weird messages from \"Etsy support\" / Scam Attempts",
+      "a70f3127-1a8b-4264-ae7d-1e9a25b83939",
+      "abb0e28f-fd99-4673-bb9d-31547e977ba1",
+      "d31a0472-8803-469a-8990-1ca1fd2be289",
+      "e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150",
+      "e9eaf7aa-13bb-428f-9da6-b38aac75b176",
+      "eabd0fc1-744b-435c-8141-572afd782c26"
+    ],
+    "retrieval_stats": {
+      "high_count": 3,
+      "failure_count": 2,
+      "fire_patterns": 2,
+      "search_patterns": 1,
+      "failure_patterns": 1,
+      "rules_count": 14
+    }
+  },
+  {
+    "test_id": "T2_question",
+    "subreddit": "Etsy",
+    "title": "Looking for recommendations: label maker for organizing my home office files?",
+    "selftext": "Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+    "new_content_tags": {
+      "topic_tags": [
+        "organizing",
+        "labeling"
+      ],
+      "scenario_tags": [],
+      "structure_tags": [
+        "question"
+      ],
+      "product_visibility": "none",
+      "brand_mentions": [],
+      "search_value": "mid",
+      "search_value_reasoning": "rule_based_fallback"
+    },
+    "user_prompt": "=== COMMUNITY RULES ===\nrule_id=No Shameless Plugs, Promotional Content, or Referral Links | We do not allow promotion of any kind here.  This includes shops, listings, and seller tools / services - whether directly linked or not.  All of this must go in the weekly stickied promotional post.  Shop links as user flair are acceptable.\n\nPlease do not post referral links for Etsy or another service. If someone requests a code for free listings PM them the link.\nIf you offer a service for Etsy sellers, post your info in the weekly Share Your Stuff thread.\nrule_id=Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays | Shop critique requests and requests for feedback are allowed on FRIDAYS ONLY.  Please follow the guideline post linked here in order to post a shop feedback request.\n\nShop critique requests and requests for feedback are allowed on FRIDAYS ONLY.  Please follow the guideline post linked here in order to post a shop feedback request.\n\nhttps://www.reddit.com/r/Etsy/comments/14ylt9c/feedback_fridays_guidelines_for_creating_a_shop/\nrule_id=READ THE FAQ FIRST!  No Low Effort Content / Misinformation | Please read the stickied FAQ post and use the sub search feature before posting!  Many questions have been asked and answered before!  Repetitive posts may be occasionally be removed at moderator discretion.\n\nAdditionally, please keep content helpful and constructive. Misinformation is subject to removal. \n Repetitive rants &amp; complaints may also be removed. If you are just here to complain, please do not participate as we want to keep the content of this sub helpful for those needing advice.\nrule_id=Weird messages from \"Etsy support\" / Scam Attempts | If you got a weird message from \"Etsy support\", you are not alone. We are currently getting posts just about every hour asking about these messages. THEY ARE SCAM ATTEMPTS. Full details here, and please do not create new separate posts asking about them.\n\nhttps://www.reddit.com/r/EtsySellers/comments/15ng6bm/a_guide_to_scam_attempts_on_etsy/\nrule_id=No Trademark/Copyright Takedown Questions | Asking why there is copyright infringement on Etsy is a super common question here.  The answers are always the same, so here's a link to the answer:\nhttps://www.reddit.com/r/Etsy/comments/1cxylia/what_actually_is_etsys_ip_policy/\nNote that we do not allow encouraging violating copyright here. \nrule_id=No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context | Blog posts go in the share your stuff thread. No asking for free products in posts, comments, or PM.\nPosting your personal, non-Etsy shop or your shop in addition to Etsy is okay. Drive by spammers who post links to non-Etsy e-commerce venues will be banned.  Links posted with no context or poorly explained context, or posts not directly relevant to Etsy, will be removed.\nrule_id=Remember the Golden Rule and Don't Be a Dick | This subreddit is a place free of excessive cynicism, negativity and bitterness. Healthy criticism and skepticism is fine under certain circumstances, but toxic attitudes, rudeness, and nastiness are not welcome here.\n \nWe realize Etsy can be frustrating to maneuver, but creating an excessively negative impression for customers harms all shops. \n\nAlso: no naming shops or individuals suggesting they are scammers.  This is not allowed per Reddit's anti-doxxing policies.\nrule_id=Please Post Surveys and Seller Tools in the Share Your Stuff Thread | If you are doing research for school, a magazine, etc. or are studying buyers, sellers, marketing, etc, please feel free to post your survey ONLY in the Share Your Stuff thread.  The same applies if you are looking for feedback on, testers for, or to promote a tool for sellers.\nrule_id=No Asking for General Newbie Advice/Asking What You Should Sell | If you are just starting out, please read the Etsy Seller Handbook for advice and guidance on opening an Etsy shop. You may also utilize the search subreddit feature to see responses to this type of post in the past.\n\nEtsy is for handmade items, vintage, or craft supplies. If your item or idea is one of these things, great! Start a store. What determines success is how hard you're willing to work and learn about Etsy. Start your store then hit up the monthly critique thread for help.\nrule_id=Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale | We love to celebrate, so post to let us know about your 100th, 1,000th, 10,000th, and 100,000th sales *only*. Please follow the rules outlined in [this post](https://old.reddit.com/r/Etsy/comments/hu970w/survey_results/?) when you hit these milestones.\nrule_id=No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations | We are trying to make money by selling handmade or designed items on Etsy. If you're found to be reselling factory produced items you will be banned. Proof is necessary for reselling claims.\n\nPlease don’t post on here asking how to skirt Etsy’s Prohibited Items or other policies, which includes reselling and copyright items. They are prohibited for a reason.\n\nPosts or comments which advocate for violating Etsy policy or the law will be removed and will result in a permanent ban.\nrule_id=No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging | Please do not ask how to export previous buyers' email addresses for the purposes of sending them a newsletter. Buyers must opt in to any newsletters. Signing them up on their behalf violates Etsy's TOS and GDPR.\n\nDon't ask how to turn favorites into sales. Contacting people who favorite your items is SPAM and against Etsy’s policies. Do not do this.\nrule_id=Account Suspension Posts | There are many reasons why a shop or account may be suspended. Please thoroughly read and go through the checklist post here (https://www.reddit.com/r/Etsy/comments/uwrqck/account_suspension_help_checklist/ )  Your question is almost certainly covered here.  If it is not, please reach out to us via modmail.\nrule_id=No AI written content | We've been hit by waves of bot accounts posting duplicate AI written content, including posts and comments.  This is not allowed here.  Please write your own content if you want to contribute.\n\nViolating this rule will result in a warning.  After that, it's a ban from the sub.\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: True\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'business', 'count': 172}, {'topic': 'craft', 'count': 25}, {'topic': 'label', 'count': 11}, {'topic': 'python', 'count': 3}, {'topic': 'gardening', 'count': 2}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'experience', 'count': 167}, {'structure': 'question', 'count': 153}, {'structure': 'promotional', 'count': 53}]\nproduct_acceptance: {'high': {'none': 42, 'natural': 1}, 'mid': {'none': 106, 'natural': 1, 'subtle': 1}, 'low': {'none': 21}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\nid=abb0e28f-fd99-4673-bb9d-31547e977ba1 | [high, score=33, comments=17] FAQs - Please start here before making a post! | structure=question,experience,promotional, product=none, search=mid, topics=business,craft\nid=a3265ec4-baae-4d26-a8a7-f7c3019b28ad | [high, score=32, comments=22] Had my first sale! Now what | structure=question,experience, product=natural, search=mid, topics=label,business,craft\nid=54e23080-d652-45e0-a1f4-0ea339a64785 | [high, score=570, comments=83] I don't even know what to really say about that | structure=question,experience,promotional, product=none, search=mid, topics=label,business\n\n=== SIMILAR FAILURE/LOW CASES ===\nid=97127c18-30f7-4474-ac6e-34e1a605c181 | [failure, score=0, comments=6] looking to start new shop need advice | structure=question,experience, product=none, search=high, topics=business\nid=600651c6-89fa-470b-9bac-8cd01a5e37e1 | [failure, score=0, comments=37] My Etsy shop went from 2 sales a day to 1 sale every 4 days.could you critique my shop? | structure=question,experience, product=none, search=mid, topics=business\n\n=== KNOWLEDGE PATTERNS ===\npattern_id=89a8acf0-1861-4686-97aa-7a32c3a4a03a | [fire, status=candidate, samples=108] mid tier 帖子中,experience 结构出现 105/108 次。代表性帖子: Etsy Rug Return - Am I Bones?\npattern_id=5c2523f8-f87e-4c16-a294-f3e21a8ec732 | [fire, status=candidate, samples=43] high tier 帖子中,experience 结构出现 41/43 次。代表性帖子: Does anyone REAL sell clothing anymore?\npattern_id=e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150 | [search, status=candidate, samples=8] 高搜索价值(search_value=high)帖子中,question 结构出现 8/8 次。更接近用户搜索语言 + 完整回答具体问题。\npattern_id=d31a0472-8803-469a-8990-1ca1fd2be289 | [failure, status=candidate, samples=21] low tier 帖子中,experience 结构出现 21/21 次。代表性帖子: Anyone bought from Sayonarin?\n\n=== NEW CONTENT TO ANALYZE ===\nLooking for recommendations: label maker for organizing my home office files?\nSetting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.\n\n=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===\n54e23080-d652-45e0-a1f4-0ea339a64785, 5c2523f8-f87e-4c16-a294-f3e21a8ec732, 600651c6-89fa-470b-9bac-8cd01a5e37e1, 89a8acf0-1861-4686-97aa-7a32c3a4a03a, 97127c18-30f7-4474-ac6e-34e1a605c181, Account Suspension Posts, Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale, Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays, No AI written content, No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging, No Asking for General Newbie Advice/Asking What You Should Sell, No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context, No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations, No Shameless Plugs, Promotional Content, or Referral Links, No Trademark/Copyright Takedown Questions, Please Post Surveys and Seller Tools in the Share Your Stuff Thread, READ THE FAQ FIRST!  No Low Effort Content / Misinformation, Remember the Golden Rule and Don't Be a Dick, Weird messages from \"Etsy support\" / Scam Attempts, a3265ec4-baae-4d26-a8a7-f7c3019b28ad, abb0e28f-fd99-4673-bb9d-31547e977ba1, d31a0472-8803-469a-8990-1ca1fd2be289, e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150",
+    "allowed_ids": [
+      "54e23080-d652-45e0-a1f4-0ea339a64785",
+      "5c2523f8-f87e-4c16-a294-f3e21a8ec732",
+      "600651c6-89fa-470b-9bac-8cd01a5e37e1",
+      "89a8acf0-1861-4686-97aa-7a32c3a4a03a",
+      "97127c18-30f7-4474-ac6e-34e1a605c181",
+      "Account Suspension Posts",
+      "Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale",
+      "Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays",
+      "No AI written content",
+      "No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging",
+      "No Asking for General Newbie Advice/Asking What You Should Sell",
+      "No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context",
+      "No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations",
+      "No Shameless Plugs, Promotional Content, or Referral Links",
+      "No Trademark/Copyright Takedown Questions",
+      "Please Post Surveys and Seller Tools in the Share Your Stuff Thread",
+      "READ THE FAQ FIRST!  No Low Effort Content / Misinformation",
+      "Remember the Golden Rule and Don't Be a Dick",
+      "Weird messages from \"Etsy support\" / Scam Attempts",
+      "a3265ec4-baae-4d26-a8a7-f7c3019b28ad",
+      "abb0e28f-fd99-4673-bb9d-31547e977ba1",
+      "d31a0472-8803-469a-8990-1ca1fd2be289",
+      "e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150"
+    ],
+    "retrieval_stats": {
+      "high_count": 3,
+      "failure_count": 2,
+      "fire_patterns": 2,
+      "search_patterns": 1,
+      "failure_patterns": 1,
+      "rules_count": 14
+    }
+  },
+  {
+    "test_id": "T3_promotional",
+    "subreddit": "Etsy",
+    "title": "The Niimbot label printer changed my organizing game — 40% off this week!",
+    "selftext": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+    "new_content_tags": {
+      "topic_tags": [
+        "organizing",
+        "labeling"
+      ],
+      "scenario_tags": [],
+      "structure_tags": [
+        "promotional"
+      ],
+      "product_visibility": "promotional",
+      "brand_mentions": [],
+      "search_value": "low",
+      "search_value_reasoning": "rule_based_fallback"
+    },
+    "user_prompt": "=== COMMUNITY RULES ===\nrule_id=No Shameless Plugs, Promotional Content, or Referral Links | We do not allow promotion of any kind here.  This includes shops, listings, and seller tools / services - whether directly linked or not.  All of this must go in the weekly stickied promotional post.  Shop links as user flair are acceptable.\n\nPlease do not post referral links for Etsy or another service. If someone requests a code for free listings PM them the link.\nIf you offer a service for Etsy sellers, post your info in the weekly Share Your Stuff thread.\nrule_id=Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays | Shop critique requests and requests for feedback are allowed on FRIDAYS ONLY.  Please follow the guideline post linked here in order to post a shop feedback request.\n\nShop critique requests and requests for feedback are allowed on FRIDAYS ONLY.  Please follow the guideline post linked here in order to post a shop feedback request.\n\nhttps://www.reddit.com/r/Etsy/comments/14ylt9c/feedback_fridays_guidelines_for_creating_a_shop/\nrule_id=READ THE FAQ FIRST!  No Low Effort Content / Misinformation | Please read the stickied FAQ post and use the sub search feature before posting!  Many questions have been asked and answered before!  Repetitive posts may be occasionally be removed at moderator discretion.\n\nAdditionally, please keep content helpful and constructive. Misinformation is subject to removal. \n Repetitive rants &amp; complaints may also be removed. If you are just here to complain, please do not participate as we want to keep the content of this sub helpful for those needing advice.\nrule_id=Weird messages from \"Etsy support\" / Scam Attempts | If you got a weird message from \"Etsy support\", you are not alone. We are currently getting posts just about every hour asking about these messages. THEY ARE SCAM ATTEMPTS. Full details here, and please do not create new separate posts asking about them.\n\nhttps://www.reddit.com/r/EtsySellers/comments/15ng6bm/a_guide_to_scam_attempts_on_etsy/\nrule_id=No Trademark/Copyright Takedown Questions | Asking why there is copyright infringement on Etsy is a super common question here.  The answers are always the same, so here's a link to the answer:\nhttps://www.reddit.com/r/Etsy/comments/1cxylia/what_actually_is_etsys_ip_policy/\nNote that we do not allow encouraging violating copyright here. \nrule_id=No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context | Blog posts go in the share your stuff thread. No asking for free products in posts, comments, or PM.\nPosting your personal, non-Etsy shop or your shop in addition to Etsy is okay. Drive by spammers who post links to non-Etsy e-commerce venues will be banned.  Links posted with no context or poorly explained context, or posts not directly relevant to Etsy, will be removed.\nrule_id=Remember the Golden Rule and Don't Be a Dick | This subreddit is a place free of excessive cynicism, negativity and bitterness. Healthy criticism and skepticism is fine under certain circumstances, but toxic attitudes, rudeness, and nastiness are not welcome here.\n \nWe realize Etsy can be frustrating to maneuver, but creating an excessively negative impression for customers harms all shops. \n\nAlso: no naming shops or individuals suggesting they are scammers.  This is not allowed per Reddit's anti-doxxing policies.\nrule_id=Please Post Surveys and Seller Tools in the Share Your Stuff Thread | If you are doing research for school, a magazine, etc. or are studying buyers, sellers, marketing, etc, please feel free to post your survey ONLY in the Share Your Stuff thread.  The same applies if you are looking for feedback on, testers for, or to promote a tool for sellers.\nrule_id=No Asking for General Newbie Advice/Asking What You Should Sell | If you are just starting out, please read the Etsy Seller Handbook for advice and guidance on opening an Etsy shop. You may also utilize the search subreddit feature to see responses to this type of post in the past.\n\nEtsy is for handmade items, vintage, or craft supplies. If your item or idea is one of these things, great! Start a store. What determines success is how hard you're willing to work and learn about Etsy. Start your store then hit up the monthly critique thread for help.\nrule_id=Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale | We love to celebrate, so post to let us know about your 100th, 1,000th, 10,000th, and 100,000th sales *only*. Please follow the rules outlined in [this post](https://old.reddit.com/r/Etsy/comments/hu970w/survey_results/?) when you hit these milestones.\nrule_id=No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations | We are trying to make money by selling handmade or designed items on Etsy. If you're found to be reselling factory produced items you will be banned. Proof is necessary for reselling claims.\n\nPlease don’t post on here asking how to skirt Etsy’s Prohibited Items or other policies, which includes reselling and copyright items. They are prohibited for a reason.\n\nPosts or comments which advocate for violating Etsy policy or the law will be removed and will result in a permanent ban.\nrule_id=No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging | Please do not ask how to export previous buyers' email addresses for the purposes of sending them a newsletter. Buyers must opt in to any newsletters. Signing them up on their behalf violates Etsy's TOS and GDPR.\n\nDon't ask how to turn favorites into sales. Contacting people who favorite your items is SPAM and against Etsy’s policies. Do not do this.\nrule_id=Account Suspension Posts | There are many reasons why a shop or account may be suspended. Please thoroughly read and go through the checklist post here (https://www.reddit.com/r/Etsy/comments/uwrqck/account_suspension_help_checklist/ )  Your question is almost certainly covered here.  If it is not, please reach out to us via modmail.\nrule_id=No AI written content | We've been hit by waves of bot accounts posting duplicate AI written content, including posts and comments.  This is not allowed here.  Please write your own content if you want to contribute.\n\nViolating this rule will result in a warning.  After that, it's a ban from the sub.\nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: True\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'business', 'count': 172}, {'topic': 'craft', 'count': 25}, {'topic': 'label', 'count': 11}, {'topic': 'python', 'count': 3}, {'topic': 'gardening', 'count': 2}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'experience', 'count': 167}, {'structure': 'question', 'count': 153}, {'structure': 'promotional', 'count': 53}]\nproduct_acceptance: {'high': {'none': 42, 'natural': 1}, 'mid': {'none': 106, 'natural': 1, 'subtle': 1}, 'low': {'none': 21}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\nid=abb0e28f-fd99-4673-bb9d-31547e977ba1 | [high, score=33, comments=17] FAQs - Please start here before making a post! | structure=question,experience,promotional, product=none, search=mid, topics=business,craft\nid=54e23080-d652-45e0-a1f4-0ea339a64785 | [high, score=570, comments=83] I don't even know what to really say about that | structure=question,experience,promotional, product=none, search=mid, topics=label,business\nid=927f2ba8-ff70-476b-a9fb-5c4cfa7cedc1 | [high, score=95, comments=24] Unhinged customer | structure=question,experience,promotional, product=none, search=mid, topics=business\n\n=== SIMILAR FAILURE/LOW CASES ===\nid=3d1eab90-02ff-4068-94a4-48f3c6c6ae2e | [failure, score=0, comments=7] Recourse? | structure=question,experience,promotional, product=none, search=mid, topics=business\nid=d5334946-b5ad-4dc7-b9fc-8cc5bd94e15c | [failure, score=0, comments=24] I just opened my Etsy shop from Japan — but I have 0 views. What would you actually want to buy from | structure=question,experience,promotional, product=none, search=mid, topics=business,baking\n\n=== KNOWLEDGE PATTERNS ===\npattern_id=89a8acf0-1861-4686-97aa-7a32c3a4a03a | [fire, status=candidate, samples=108] mid tier 帖子中,experience 结构出现 105/108 次。代表性帖子: Etsy Rug Return - Am I Bones?\npattern_id=5c2523f8-f87e-4c16-a294-f3e21a8ec732 | [fire, status=candidate, samples=43] high tier 帖子中,experience 结构出现 41/43 次。代表性帖子: Does anyone REAL sell clothing anymore?\npattern_id=e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150 | [search, status=candidate, samples=8] 高搜索价值(search_value=high)帖子中,question 结构出现 8/8 次。更接近用户搜索语言 + 完整回答具体问题。\npattern_id=d31a0472-8803-469a-8990-1ca1fd2be289 | [failure, status=candidate, samples=21] low tier 帖子中,experience 结构出现 21/21 次。代表性帖子: Anyone bought from Sayonarin?\n\n=== NEW CONTENT TO ANALYZE ===\nThe Niimbot label printer changed my organizing game — 40% off this week!\nJust sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.\n\n=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===\n3d1eab90-02ff-4068-94a4-48f3c6c6ae2e, 54e23080-d652-45e0-a1f4-0ea339a64785, 5c2523f8-f87e-4c16-a294-f3e21a8ec732, 89a8acf0-1861-4686-97aa-7a32c3a4a03a, 927f2ba8-ff70-476b-a9fb-5c4cfa7cedc1, Account Suspension Posts, Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale, Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays, No AI written content, No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging, No Asking for General Newbie Advice/Asking What You Should Sell, No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context, No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations, No Shameless Plugs, Promotional Content, or Referral Links, No Trademark/Copyright Takedown Questions, Please Post Surveys and Seller Tools in the Share Your Stuff Thread, READ THE FAQ FIRST!  No Low Effort Content / Misinformation, Remember the Golden Rule and Don't Be a Dick, Weird messages from \"Etsy support\" / Scam Attempts, abb0e28f-fd99-4673-bb9d-31547e977ba1, d31a0472-8803-469a-8990-1ca1fd2be289, d5334946-b5ad-4dc7-b9fc-8cc5bd94e15c, e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150",
+    "allowed_ids": [
+      "3d1eab90-02ff-4068-94a4-48f3c6c6ae2e",
+      "54e23080-d652-45e0-a1f4-0ea339a64785",
+      "5c2523f8-f87e-4c16-a294-f3e21a8ec732",
+      "89a8acf0-1861-4686-97aa-7a32c3a4a03a",
+      "927f2ba8-ff70-476b-a9fb-5c4cfa7cedc1",
+      "Account Suspension Posts",
+      "Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale",
+      "Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays",
+      "No AI written content",
+      "No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging",
+      "No Asking for General Newbie Advice/Asking What You Should Sell",
+      "No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context",
+      "No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations",
+      "No Shameless Plugs, Promotional Content, or Referral Links",
+      "No Trademark/Copyright Takedown Questions",
+      "Please Post Surveys and Seller Tools in the Share Your Stuff Thread",
+      "READ THE FAQ FIRST!  No Low Effort Content / Misinformation",
+      "Remember the Golden Rule and Don't Be a Dick",
+      "Weird messages from \"Etsy support\" / Scam Attempts",
+      "abb0e28f-fd99-4673-bb9d-31547e977ba1",
+      "d31a0472-8803-469a-8990-1ca1fd2be289",
+      "d5334946-b5ad-4dc7-b9fc-8cc5bd94e15c",
+      "e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150"
+    ],
+    "retrieval_stats": {
+      "high_count": 3,
+      "failure_count": 2,
+      "fire_patterns": 2,
+      "search_patterns": 1,
+      "failure_patterns": 1,
+      "rules_count": 14
+    }
+  },
+  {
+    "test_id": "T1_experience",
+    "subreddit": "Peptides",
+    "title": "Finally organized my pantry with a label maker — here's what I learned",
+    "selftext": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+    "new_content_tags": {
+      "topic_tags": [
+        "organizing",
+        "labeling"
+      ],
+      "scenario_tags": [],
+      "structure_tags": [
+        "experience"
+      ],
+      "product_visibility": "subtle",
+      "brand_mentions": [],
+      "search_value": "mid",
+      "search_value_reasoning": "rule_based_fallback"
+    },
+    "user_prompt": "=== COMMUNITY RULES ===\nrule_id=Be polite. | You shouldn't ever be personally attacking another user in this subreddit.\nrule_id=Report Your Affiliations | If you're linking to your own site, you need to disclose that fact. Either through getting flair from a moderator or by telling people when you're linking your own site.\nrule_id=Low-Quality Spam | Low-Quality Spam/Astroturfing is not allowed. Necroing posts, using throwaways to shill sites, spamming random posts/comment chains and more will result in a ban. \nrule_id=You must be 18 or older | You must be 18 years of age or older to view and engage in this subreddit.\nrule_id=No sourcing of prescribed GLP-1 peptides  | These compounds cannot be sourced here, no vendor discussion for them. \nrule_id=No source discussion | \nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'general', 'count': 4}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'question', 'count': 5}, {'structure': 'experience', 'count': 4}]\nproduct_acceptance: {'high': {'none': 2}, 'mid': {'none': 2}, 'low': {'none': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\nid=8a57eb3b-e929-4d42-b239-0163a119a751 | [high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general\nid=75c97de5-174e-43bd-8050-950ac18a6e51 | [high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general\n\n=== SIMILAR FAILURE/LOW CASES ===\nid=618a646f-6d2a-4848-82c3-a617929b799a | [failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general\n\n=== KNOWLEDGE PATTERNS ===\npattern_id=c0904205-1252-4655-b02c-328f0a46def0 | [fire, status=candidate, samples=2] mid tier 帖子中,question 结构出现 2/2 次。代表性帖子: how to store unreconstituted glutathion?\npattern_id=13161dc2-02b5-4343-bfcb-f6572ad38f96 | [fire, status=candidate, samples=2] high tier 帖子中,question 结构出现 2/2 次。代表性帖子: Is my reta and tesa water supposded to look like this?\n\n=== NEW CONTENT TO ANALYZE ===\nFinally organized my pantry with a label maker — here's what I learned\nI've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.\n\n=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===\n13161dc2-02b5-4343-bfcb-f6572ad38f96, 618a646f-6d2a-4848-82c3-a617929b799a, 75c97de5-174e-43bd-8050-950ac18a6e51, 8a57eb3b-e929-4d42-b239-0163a119a751, Be polite., Low-Quality Spam, No source discussion, No sourcing of prescribed GLP-1 peptides , Report Your Affiliations, You must be 18 or older, c0904205-1252-4655-b02c-328f0a46def0",
+    "allowed_ids": [
+      "13161dc2-02b5-4343-bfcb-f6572ad38f96",
+      "618a646f-6d2a-4848-82c3-a617929b799a",
+      "75c97de5-174e-43bd-8050-950ac18a6e51",
+      "8a57eb3b-e929-4d42-b239-0163a119a751",
+      "Be polite.",
+      "Low-Quality Spam",
+      "No source discussion",
+      "No sourcing of prescribed GLP-1 peptides ",
+      "Report Your Affiliations",
+      "You must be 18 or older",
+      "c0904205-1252-4655-b02c-328f0a46def0"
+    ],
+    "retrieval_stats": {
+      "high_count": 2,
+      "failure_count": 1,
+      "fire_patterns": 2,
+      "search_patterns": 0,
+      "failure_patterns": 0,
+      "rules_count": 6
+    }
+  },
+  {
+    "test_id": "T2_question",
+    "subreddit": "Peptides",
+    "title": "Looking for recommendations: label maker for organizing my home office files?",
+    "selftext": "Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+    "new_content_tags": {
+      "topic_tags": [
+        "organizing",
+        "labeling"
+      ],
+      "scenario_tags": [],
+      "structure_tags": [
+        "question"
+      ],
+      "product_visibility": "none",
+      "brand_mentions": [],
+      "search_value": "mid",
+      "search_value_reasoning": "rule_based_fallback"
+    },
+    "user_prompt": "=== COMMUNITY RULES ===\nrule_id=Be polite. | You shouldn't ever be personally attacking another user in this subreddit.\nrule_id=Report Your Affiliations | If you're linking to your own site, you need to disclose that fact. Either through getting flair from a moderator or by telling people when you're linking your own site.\nrule_id=Low-Quality Spam | Low-Quality Spam/Astroturfing is not allowed. Necroing posts, using throwaways to shill sites, spamming random posts/comment chains and more will result in a ban. \nrule_id=You must be 18 or older | You must be 18 years of age or older to view and engage in this subreddit.\nrule_id=No sourcing of prescribed GLP-1 peptides  | These compounds cannot be sourced here, no vendor discussion for them. \nrule_id=No source discussion | \nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'general', 'count': 4}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'question', 'count': 5}, {'structure': 'experience', 'count': 4}]\nproduct_acceptance: {'high': {'none': 2}, 'mid': {'none': 2}, 'low': {'none': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\nid=8a57eb3b-e929-4d42-b239-0163a119a751 | [high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general\nid=75c97de5-174e-43bd-8050-950ac18a6e51 | [high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general\n\n=== SIMILAR FAILURE/LOW CASES ===\nid=618a646f-6d2a-4848-82c3-a617929b799a | [failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general\n\n=== KNOWLEDGE PATTERNS ===\npattern_id=c0904205-1252-4655-b02c-328f0a46def0 | [fire, status=candidate, samples=2] mid tier 帖子中,question 结构出现 2/2 次。代表性帖子: how to store unreconstituted glutathion?\npattern_id=13161dc2-02b5-4343-bfcb-f6572ad38f96 | [fire, status=candidate, samples=2] high tier 帖子中,question 结构出现 2/2 次。代表性帖子: Is my reta and tesa water supposded to look like this?\n\n=== NEW CONTENT TO ANALYZE ===\nLooking for recommendations: label maker for organizing my home office files?\nSetting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.\n\n=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===\n13161dc2-02b5-4343-bfcb-f6572ad38f96, 618a646f-6d2a-4848-82c3-a617929b799a, 75c97de5-174e-43bd-8050-950ac18a6e51, 8a57eb3b-e929-4d42-b239-0163a119a751, Be polite., Low-Quality Spam, No source discussion, No sourcing of prescribed GLP-1 peptides , Report Your Affiliations, You must be 18 or older, c0904205-1252-4655-b02c-328f0a46def0",
+    "allowed_ids": [
+      "13161dc2-02b5-4343-bfcb-f6572ad38f96",
+      "618a646f-6d2a-4848-82c3-a617929b799a",
+      "75c97de5-174e-43bd-8050-950ac18a6e51",
+      "8a57eb3b-e929-4d42-b239-0163a119a751",
+      "Be polite.",
+      "Low-Quality Spam",
+      "No source discussion",
+      "No sourcing of prescribed GLP-1 peptides ",
+      "Report Your Affiliations",
+      "You must be 18 or older",
+      "c0904205-1252-4655-b02c-328f0a46def0"
+    ],
+    "retrieval_stats": {
+      "high_count": 2,
+      "failure_count": 1,
+      "fire_patterns": 2,
+      "search_patterns": 0,
+      "failure_patterns": 0,
+      "rules_count": 6
+    }
+  },
+  {
+    "test_id": "T3_promotional",
+    "subreddit": "Peptides",
+    "title": "The Niimbot label printer changed my organizing game — 40% off this week!",
+    "selftext": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+    "new_content_tags": {
+      "topic_tags": [
+        "organizing",
+        "labeling"
+      ],
+      "scenario_tags": [],
+      "structure_tags": [
+        "promotional"
+      ],
+      "product_visibility": "promotional",
+      "brand_mentions": [],
+      "search_value": "low",
+      "search_value_reasoning": "rule_based_fallback"
+    },
+    "user_prompt": "=== COMMUNITY RULES ===\nrule_id=Be polite. | You shouldn't ever be personally attacking another user in this subreddit.\nrule_id=Report Your Affiliations | If you're linking to your own site, you need to disclose that fact. Either through getting flair from a moderator or by telling people when you're linking your own site.\nrule_id=Low-Quality Spam | Low-Quality Spam/Astroturfing is not allowed. Necroing posts, using throwaways to shill sites, spamming random posts/comment chains and more will result in a ban. \nrule_id=You must be 18 or older | You must be 18 years of age or older to view and engage in this subreddit.\nrule_id=No sourcing of prescribed GLP-1 peptides  | These compounds cannot be sourced here, no vendor discussion for them. \nrule_id=No source discussion | \nkarma_requirement: None\naccount_age_requirement: None\nflair_required: False\nlink_restricted: False\ncommercial_content_restricted: False\npost_frequency_limit: None\nsensitive_content_rules: []\n\n=== COMMUNITY SUMMARY ===\ntop_topics: [{'topic': 'general', 'count': 4}, {'topic': 'baking', 'count': 1}]\ncommon_structures: [{'structure': 'question', 'count': 5}, {'structure': 'experience', 'count': 4}]\nproduct_acceptance: {'high': {'none': 2}, 'mid': {'none': 2}, 'low': {'none': 1}, 'unknown': {}}\n\n=== SIMILAR HIGH-PERFORMANCE CASES ===\nid=8a57eb3b-e929-4d42-b239-0163a119a751 | [high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general\nid=75c97de5-174e-43bd-8050-950ac18a6e51 | [high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general\n\n=== SIMILAR FAILURE/LOW CASES ===\nid=618a646f-6d2a-4848-82c3-a617929b799a | [failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general\n\n=== KNOWLEDGE PATTERNS ===\npattern_id=c0904205-1252-4655-b02c-328f0a46def0 | [fire, status=candidate, samples=2] mid tier 帖子中,question 结构出现 2/2 次。代表性帖子: how to store unreconstituted glutathion?\npattern_id=13161dc2-02b5-4343-bfcb-f6572ad38f96 | [fire, status=candidate, samples=2] high tier 帖子中,question 结构出现 2/2 次。代表性帖子: Is my reta and tesa water supposded to look like this?\n\n=== NEW CONTENT TO ANALYZE ===\nThe Niimbot label printer changed my organizing game — 40% off this week!\nJust sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.\n\n=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===\n13161dc2-02b5-4343-bfcb-f6572ad38f96, 618a646f-6d2a-4848-82c3-a617929b799a, 75c97de5-174e-43bd-8050-950ac18a6e51, 8a57eb3b-e929-4d42-b239-0163a119a751, Be polite., Low-Quality Spam, No source discussion, No sourcing of prescribed GLP-1 peptides , Report Your Affiliations, You must be 18 or older, c0904205-1252-4655-b02c-328f0a46def0",
+    "allowed_ids": [
+      "13161dc2-02b5-4343-bfcb-f6572ad38f96",
+      "618a646f-6d2a-4848-82c3-a617929b799a",
+      "75c97de5-174e-43bd-8050-950ac18a6e51",
+      "8a57eb3b-e929-4d42-b239-0163a119a751",
+      "Be polite.",
+      "Low-Quality Spam",
+      "No source discussion",
+      "No sourcing of prescribed GLP-1 peptides ",
+      "Report Your Affiliations",
+      "You must be 18 or older",
+      "c0904205-1252-4655-b02c-328f0a46def0"
+    ],
+    "retrieval_stats": {
+      "high_count": 2,
+      "failure_count": 1,
+      "fire_patterns": 2,
+      "search_patterns": 0,
+      "failure_patterns": 0,
+      "rules_count": 6
+    }
+  }
+]
+
+def call_ollama(system, user):
+    payload = {"model":MODEL,"messages":[{"role":"system","content":system},{"role":"user","content":user}],"stream":False,"options":{"temperature":0.3,"num_predict":2000},"format":"json"}
+    req = urllib.request.Request(BASE+"/api/chat", data=json.dumps(payload).encode(), headers={"Content-Type":"application/json"}, method="POST")
+    t0 = time.time()
+    try:
+        with urllib.request.urlopen(req, timeout=180) as r:
+            data = json.loads(r.read().decode())
+            raw = (data.get("message") or {}).get("content","")
+            try: parsed = json.loads(raw)
+            except:
+                import re
+                m = re.search(r"\{.*\}", raw, re.DOTALL)
+                parsed = json.loads(m.group(0)) if m else None
+            return {"raw":raw,"parsed":parsed,"ok":parsed is not None,"ms":round((time.time()-t0)*1000)}
+    except Exception as e:
+        return {"raw":"","parsed":None,"ok":False,"ms":round((time.time()-t0)*1000),"err":str(e)}
+
+# 1) Check Ollama
+print("=== 检查 Ollama ===")
+try:
+    with urllib.request.urlopen(BASE+"/api/tags", timeout=5) as r:
+        models = [m["name"] for m in json.loads(r.read().decode()).get("models",[])]
+    print("OK, models:", models)
+    if not any("qwen" in m.lower() for m in models):
+        print("没有 Qwen 模型! 请先运行: ollama pull qwen2.5:7b")
+        sys.exit(1)
+    match = [m for m in models if MODEL in m or MODEL.split(":")[0] in m]
+    if match:
+        MODEL = match[0]
+    print("使用模型:", MODEL)
+except Exception as e:
+    print("Ollama 不可达:", e)
+    print("请先在另一个窗口运行: ollama serve")
+    sys.exit(1)
+
+# 2) Run 9 tests
+results = []
+for i, t in enumerate(TEST_DATA):
+    print(f"\n--- [{i+1}/9] {t['subreddit']} / {t['test_id']} ---")
+    print(f"Title: {t['title'][:60]}")
+    call = call_ollama(SYS, t["user_prompt"])
+    allowed = set(t["allowed_ids"])
+    if call["ok"]:
+        p = call["parsed"]
+        claimed = set()
+        for issue in (p.get("key_issues") or []):
+            for eid in (issue.get("evidence_item_ids") or []):
+                claimed.add(eid)
+        invalid = [x for x in claimed if x not in allowed]
+        v = {"valid": len(invalid)==0, "claimed": sorted(claimed), "invalid": sorted(invalid)}
+        print(f"OK ({call['ms']}ms) verdict={p.get('verdict','?')}")
+        print(f"  key_issues: {len(p.get('key_issues',[]))}")
+        print(f"  evidence_ids: {v['claimed']}")
+        if invalid: print(f"  ⚠ 无效 ID: {invalid}")
+        else: print(f"  ✓ evidence 校验通过")
+    else:
+        v = {"valid": False, "reason": "no parsed JSON"}
+        print(f"FAIL: {call.get('err','parse failed')}")
+        if call.get("raw"): print("  raw:", call["raw"][:300])
+    results.append({
+        "test_id": t["test_id"],
+        "subreddit": t["subreddit"],
+        "title": t["title"],
+        "selftext": t["selftext"],
+        "allowed_ids": t["allowed_ids"],
+        "retrieval_stats": t.get("retrieval_stats"),
+        "llm": call,
+        "evidence_check": v,
+    })
+
+# 3) Save
+out = {"model":MODEL, "base":BASE, "results":results}
+out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "9case_results.json")
+with open(out_path, "w", encoding="utf-8") as f:
+    json.dump(out, f, ensure_ascii=False, indent=2)
+print(f"\n=== 完成 ===")
+print(f"结果已保存到: {out_path}")
+print("请把这个 JSON 文件的内容贴回沙箱。")
