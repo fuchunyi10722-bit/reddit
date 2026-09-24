@@ -1,0 +1,923 @@
+{
+  "model": "qwen2.5:7b",
+  "base": "http://localhost:11434",
+  "results": [
+    {
+      "test_id": "T1_experience",
+      "subreddit": "organization",
+      "title": "Finally organized my pantry with a label maker — here's what I learned",
+      "selftext": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+      "allowed_ids": [
+        "4580832a-ffdd-4c06-8881-942ca35d17ea",
+        "48fcee6f-d22b-4aba-98bb-8197699e82a7",
+        "4b859a76-188f-4473-8a8d-310140f53250",
+        "547488cf-a2aa-4cfc-bb1e-821f107438c6",
+        "7dc37656-13ab-49a3-b042-8b2570cae0ca",
+        "8fcf6d81-d364-43bd-8bbf-dcc012a1da78",
+        "9287b90e-e27d-44f1-aea6-a932a0d26490",
+        "c1b1b19f-67a2-4e79-ae09-51c9b389e39f",
+        "db52ddb7-6f18-4424-95b6-da6809f128ad"
+      ],
+      "retrieval_stats": {
+        "high_count": 3,
+        "failure_count": 2,
+        "fire_patterns": 2,
+        "search_patterns": 1,
+        "failure_patterns": 1,
+        "rules_count": 0
+      },
+      "llm": {
+        "raw": "{\n  \"verdict\": \"fit_after_fix\",\n  \"verdict_reason\": \"The post is relevant and aligns with the community's interests, but it lacks a clear promotional element and could benefit from a more natural structure.\",\n  \"key_issues\": [\n    {\n      \"issue\": \"Lack of promotional element\",\n      \"why\": \"The post focuses on sharing personal experience without explicitly promoting the product, which may not align with the community's preference for subtle commercial content.\",\n      \"evidence_type\": [\"similar_content\"],\n      \"evidence_item_ids\": [\"4b859a76-188f-4473-8a8d-310140f53250\"],\n      \"fix\": \"Add a brief mention of the product's value or benefits.\"\n    },\n    {\n      \"issue\": \"Informative structure\",\n      \"why\": \"While the post is informative, it could benefit from a more structured format that includes a clear introduction, body, and conclusion, which is typical of high-performing posts.\",\n      \"evidence_type\": [\"common_structures\"],\n      \"evidence_item_ids\": [\"4580832a-ffdd-4c06-8881-942ca35d17ea\"],\n      \"fix\": \"Organize the content into clear sections.\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"title\",\n      \"current\": \"Finally organized my pantry with a label maker — here's what I learned\",\n      \"suggested\": \"Pantry organization success: How a label maker transformed my kitchen\",\n      \"reason\": \"A more descriptive title can attract more natural comments and increase interaction.\"\n    },\n    {\n      \"target\": \"body\",\n      \"current\": \"I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.\",\n      \"suggested\": \"I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Here are the before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.\",\n      \"reason\": \"Adding 'before/after' can provide more context and make the post more engaging.\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"high\",\n    \"reasoning\": \"Based on the community's preference for natural discussions and the high performance of similar posts.\"\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the community's interest in organizing and the potential for engaging discussions.\"\n  },\n  \"evidence\": {\n    \"community_rule\": false,\n    \"similar_content_count\": 3,\n    \"high_performance_count\": 2,\n    \"mid_performance_count\": 0,\n    \"low_performance_count\": 0,\n    \"knowledge_patterns_applied\": [\"48fcee6f-d22b-4aba-98bb-8197699e82a7\"]\n  }\n}",
+        "parsed": {
+          "verdict": "fit_after_fix",
+          "verdict_reason": "The post is relevant and aligns with the community's interests, but it lacks a clear promotional element and could benefit from a more natural structure.",
+          "key_issues": [
+            {
+              "issue": "Lack of promotional element",
+              "why": "The post focuses on sharing personal experience without explicitly promoting the product, which may not align with the community's preference for subtle commercial content.",
+              "evidence_type": [
+                "similar_content"
+              ],
+              "evidence_item_ids": [
+                "4b859a76-188f-4473-8a8d-310140f53250"
+              ],
+              "fix": "Add a brief mention of the product's value or benefits."
+            },
+            {
+              "issue": "Informative structure",
+              "why": "While the post is informative, it could benefit from a more structured format that includes a clear introduction, body, and conclusion, which is typical of high-performing posts.",
+              "evidence_type": [
+                "common_structures"
+              ],
+              "evidence_item_ids": [
+                "4580832a-ffdd-4c06-8881-942ca35d17ea"
+              ],
+              "fix": "Organize the content into clear sections."
+            }
+          ],
+          "modification_suggestions": [
+            {
+              "target": "title",
+              "current": "Finally organized my pantry with a label maker — here's what I learned",
+              "suggested": "Pantry organization success: How a label maker transformed my kitchen",
+              "reason": "A more descriptive title can attract more natural comments and increase interaction."
+            },
+            {
+              "target": "body",
+              "current": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+              "suggested": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Here are the before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+              "reason": "Adding 'before/after' can provide more context and make the post more engaging."
+            }
+          ],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "high",
+            "reasoning": "Based on the community's preference for natural discussions and the high performance of similar posts."
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the community's interest in organizing and the potential for engaging discussions."
+          },
+          "evidence": {
+            "community_rule": false,
+            "similar_content_count": 3,
+            "high_performance_count": 2,
+            "mid_performance_count": 0,
+            "low_performance_count": 0,
+            "knowledge_patterns_applied": [
+              "48fcee6f-d22b-4aba-98bb-8197699e82a7"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 177214
+      },
+      "evidence_check": {
+        "valid": true,
+        "claimed": [
+          "4580832a-ffdd-4c06-8881-942ca35d17ea",
+          "4b859a76-188f-4473-8a8d-310140f53250"
+        ],
+        "invalid": []
+      }
+    },
+    {
+      "test_id": "T2_question",
+      "subreddit": "organization",
+      "title": "Looking for recommendations: label maker for organizing my home office files?",
+      "selftext": "Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+      "allowed_ids": [
+        "4580832a-ffdd-4c06-8881-942ca35d17ea",
+        "48fcee6f-d22b-4aba-98bb-8197699e82a7",
+        "4b859a76-188f-4473-8a8d-310140f53250",
+        "8fcf6d81-d364-43bd-8bbf-dcc012a1da78",
+        "9287b90e-e27d-44f1-aea6-a932a0d26490",
+        "9ae702d4-5c53-4e35-8473-3463ea5cf346",
+        "c1b1b19f-67a2-4e79-ae09-51c9b389e39f",
+        "cadd3620-6272-4015-bd3f-7e2ac520f8d3",
+        "db52ddb7-6f18-4424-95b6-da6809f128ad"
+      ],
+      "retrieval_stats": {
+        "high_count": 3,
+        "failure_count": 2,
+        "fire_patterns": 2,
+        "search_patterns": 1,
+        "failure_patterns": 1,
+        "rules_count": 0
+      },
+      "llm": {
+        "raw": "{\n  \"verdict\": \"fit\",\n  \"verdict_reason\": \"The new content aligns well with the community's top topics and structures, and the question format is common and effective.\",\n  \"key_issues\": [],\n  \"modification_suggestions\": [],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"high\",\n    \"reasoning\": \"The content is relevant and structured as a question, which is common and effective in the community.\"\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the community's top topics and the effectiveness of question-based posts.\"\n  },\n  \"evidence\": {\n    \"community_rule\": false,\n    \"similar_content_count\": 3,\n    \"high_performance_count\": 3,\n    \"mid_performance_count\": 0,\n    \"low_performance_count\": 0,\n    \"knowledge_patterns_applied\": [\"48fcee6f-d22b-4aba-98bb-8197699e82a7\"]\n  }\n}",
+        "parsed": {
+          "verdict": "fit",
+          "verdict_reason": "The new content aligns well with the community's top topics and structures, and the question format is common and effective.",
+          "key_issues": [],
+          "modification_suggestions": [],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "high",
+            "reasoning": "The content is relevant and structured as a question, which is common and effective in the community."
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the community's top topics and the effectiveness of question-based posts."
+          },
+          "evidence": {
+            "community_rule": false,
+            "similar_content_count": 3,
+            "high_performance_count": 3,
+            "mid_performance_count": 0,
+            "low_performance_count": 0,
+            "knowledge_patterns_applied": [
+              "48fcee6f-d22b-4aba-98bb-8197699e82a7"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 71088
+      },
+      "evidence_check": {
+        "valid": true,
+        "claimed": [],
+        "invalid": []
+      }
+    },
+    {
+      "test_id": "T3_promotional",
+      "subreddit": "organization",
+      "title": "The Niimbot label printer changed my organizing game — 40% off this week!",
+      "selftext": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+      "allowed_ids": [
+        "20e08bec-4862-43a2-a91d-9d7ca31fc9e0",
+        "48fcee6f-d22b-4aba-98bb-8197699e82a7",
+        "4b859a76-188f-4473-8a8d-310140f53250",
+        "7dc37656-13ab-49a3-b042-8b2570cae0ca",
+        "8fcf6d81-d364-43bd-8bbf-dcc012a1da78",
+        "9287b90e-e27d-44f1-aea6-a932a0d26490",
+        "9ae702d4-5c53-4e35-8473-3463ea5cf346",
+        "c1b1b19f-67a2-4e79-ae09-51c9b389e39f",
+        "db52ddb7-6f18-4424-95b6-da6809f128ad"
+      ],
+      "retrieval_stats": {
+        "high_count": 3,
+        "failure_count": 2,
+        "fire_patterns": 2,
+        "search_patterns": 1,
+        "failure_patterns": 1,
+        "rules_count": 0
+      },
+      "llm": {
+        "raw": "{\n  \"verdict\": \"fit_after_fix\",\n  \"verdict_reason\": \"The post is promotional and does not fit the community's preference for natural content. It also lacks a question or experience structure, which is common in high-performance posts.\",\n  \"key_issues\": [\n    {\n      \"issue\": \"Promotional content\",\n      \"why\": \"The post is primarily promotional, which is not well-received in this community.\",\n      \"evidence_type\": [\"commercial_content_restricted\"],\n      \"evidence_item_ids\": [\"20e08bec-4862-43a2-a91d-9d7ca31fc9e0\"],\n      \"fix\": \"Add a relevant question or experience to make the post more engaging and natural.\"\n    },\n    {\n      \"issue\": \"Lack of experience or question structure\",\n      \"why\": \"High-performance posts in this community often include these structures, which are missing in the current post.\",\n      \"evidence_type\": [\"common_structures\"],\n      \"evidence_item_ids\": [\"48fcee6f-d22b-4aba-98bb-8197699e82a7\"],\n      \"fix\": \"Include a personal experience or ask a relevant question to engage the community.\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"title\",\n      \"current\": \"The Niimbot label printer changed my organizing game — 40% off this week!\",\n      \"suggested\": \"Is the Niimbot label printer the right choice for home organization?\",\n      \"reason\": \"This adds a question structure that can engage the community.\"\n    },\n    {\n      \"target\": \"body\",\n      \"current\": \"Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.\",\n      \"suggested\": \"I recently found a great deal on the Niimbot label printer at 40% off on Amazon this week. I've been using it for home organization and it's changed my game. What do you think about using label printers for home organization?\",\n      \"reason\": \"This adds an experience structure and makes the post more engaging.\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"medium\",\n    \"reasoning\": \"Based on the community's preference for natural content and the lack of question/experience structures in high-performance posts.\",\n    \"evidence_insufficient\": false\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the community's top topics and common structures.\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 3,\n    \"high_performance_count\": 3,\n    \"mid_performance_count\": 0,\n    \"low_performance_count\": 0,\n    \"knowledge_patterns_applied\": [\"48fcee6f-d22b-4aba-98bb-8197699e82a7\"]\n  }\n}",
+        "parsed": {
+          "verdict": "fit_after_fix",
+          "verdict_reason": "The post is promotional and does not fit the community's preference for natural content. It also lacks a question or experience structure, which is common in high-performance posts.",
+          "key_issues": [
+            {
+              "issue": "Promotional content",
+              "why": "The post is primarily promotional, which is not well-received in this community.",
+              "evidence_type": [
+                "commercial_content_restricted"
+              ],
+              "evidence_item_ids": [
+                "20e08bec-4862-43a2-a91d-9d7ca31fc9e0"
+              ],
+              "fix": "Add a relevant question or experience to make the post more engaging and natural."
+            },
+            {
+              "issue": "Lack of experience or question structure",
+              "why": "High-performance posts in this community often include these structures, which are missing in the current post.",
+              "evidence_type": [
+                "common_structures"
+              ],
+              "evidence_item_ids": [
+                "48fcee6f-d22b-4aba-98bb-8197699e82a7"
+              ],
+              "fix": "Include a personal experience or ask a relevant question to engage the community."
+            }
+          ],
+          "modification_suggestions": [
+            {
+              "target": "title",
+              "current": "The Niimbot label printer changed my organizing game — 40% off this week!",
+              "suggested": "Is the Niimbot label printer the right choice for home organization?",
+              "reason": "This adds a question structure that can engage the community."
+            },
+            {
+              "target": "body",
+              "current": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+              "suggested": "I recently found a great deal on the Niimbot label printer at 40% off on Amazon this week. I've been using it for home organization and it's changed my game. What do you think about using label printers for home organization?",
+              "reason": "This adds an experience structure and makes the post more engaging."
+            }
+          ],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "medium",
+            "reasoning": "Based on the community's preference for natural content and the lack of question/experience structures in high-performance posts.",
+            "evidence_insufficient": false
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the community's top topics and common structures."
+          },
+          "evidence": {
+            "community_rule": true,
+            "similar_content_count": 3,
+            "high_performance_count": 3,
+            "mid_performance_count": 0,
+            "low_performance_count": 0,
+            "knowledge_patterns_applied": [
+              "48fcee6f-d22b-4aba-98bb-8197699e82a7"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 137679
+      },
+      "evidence_check": {
+        "valid": true,
+        "claimed": [
+          "20e08bec-4862-43a2-a91d-9d7ca31fc9e0",
+          "48fcee6f-d22b-4aba-98bb-8197699e82a7"
+        ],
+        "invalid": []
+      }
+    },
+    {
+      "test_id": "T1_experience",
+      "subreddit": "Etsy",
+      "title": "Finally organized my pantry with a label maker — here's what I learned",
+      "selftext": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+      "allowed_ids": [
+        "3b155ed4-11a2-41f6-9ad3-15b61fa944c1",
+        "5c2523f8-f87e-4c16-a294-f3e21a8ec732",
+        "89a8acf0-1861-4686-97aa-7a32c3a4a03a",
+        "Account Suspension Posts",
+        "Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale",
+        "Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays",
+        "No AI written content",
+        "No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging",
+        "No Asking for General Newbie Advice/Asking What You Should Sell",
+        "No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context",
+        "No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations",
+        "No Shameless Plugs, Promotional Content, or Referral Links",
+        "No Trademark/Copyright Takedown Questions",
+        "Please Post Surveys and Seller Tools in the Share Your Stuff Thread",
+        "READ THE FAQ FIRST!  No Low Effort Content / Misinformation",
+        "Remember the Golden Rule and Don't Be a Dick",
+        "Weird messages from \"Etsy support\" / Scam Attempts",
+        "a70f3127-1a8b-4264-ae7d-1e9a25b83939",
+        "abb0e28f-fd99-4673-bb9d-31547e977ba1",
+        "d31a0472-8803-469a-8990-1ca1fd2be289",
+        "e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150",
+        "e9eaf7aa-13bb-428f-9da6-b38aac75b176",
+        "eabd0fc1-744b-435c-8141-572afd782c26"
+      ],
+      "retrieval_stats": {
+        "high_count": 3,
+        "failure_count": 2,
+        "fire_patterns": 2,
+        "search_patterns": 1,
+        "failure_patterns": 1,
+        "rules_count": 14
+      },
+      "llm": {
+        "raw": "{\n  \"verdict\": \"fit_after_fix\",\n  \"verdict_reason\": \"The post is informative and relevant to the community, but it includes a promotional element which is not allowed in this community.\",\n  \"key_issues\": [\n    {\n      \"issue\": \"Promotional content\",\n      \"why\": \"The post includes a direct promotion of a product, which is against the community rules.\",\n      \"evidence_type\": [\"No Shameless Plugs, Promotional Content, or Referral Links\", \"commercial_content_restricted\"],\n      \"evidence_item_ids\": [\"No Shameless Plugs, Promotional Content, or Referral Links\"],\n      \"fix\": \"Remove the mention of the product and affiliation statement.\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"body\",\n      \"current\": \"Not affiliated, just genuinely happy with it.\",\n      \"suggested\": \"Just genuinely happy with it.\",\n      \"reason\": \"The community does not allow promotional content, even if it is not directly linked.\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"high\",\n    \"reasoning\": \"Based on the evidence of community rules and similar content.\",\n    \"evidence_insufficient\": false\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the evidence of community rules and similar content.\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 0,\n    \"high_performance_count\": 0,\n    \"mid_performance_count\": 0,\n    \"low_performance_count\": 0,\n    \"knowledge_patterns_applied\": [\"89a8acf0-1861-4686-97aa-7a32c3a4a03a\", \"e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150\"]\n  }\n}",
+        "parsed": {
+          "verdict": "fit_after_fix",
+          "verdict_reason": "The post is informative and relevant to the community, but it includes a promotional element which is not allowed in this community.",
+          "key_issues": [
+            {
+              "issue": "Promotional content",
+              "why": "The post includes a direct promotion of a product, which is against the community rules.",
+              "evidence_type": [
+                "No Shameless Plugs, Promotional Content, or Referral Links",
+                "commercial_content_restricted"
+              ],
+              "evidence_item_ids": [
+                "No Shameless Plugs, Promotional Content, or Referral Links"
+              ],
+              "fix": "Remove the mention of the product and affiliation statement."
+            }
+          ],
+          "modification_suggestions": [
+            {
+              "target": "body",
+              "current": "Not affiliated, just genuinely happy with it.",
+              "suggested": "Just genuinely happy with it.",
+              "reason": "The community does not allow promotional content, even if it is not directly linked."
+            }
+          ],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "high",
+            "reasoning": "Based on the evidence of community rules and similar content.",
+            "evidence_insufficient": false
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the evidence of community rules and similar content."
+          },
+          "evidence": {
+            "community_rule": true,
+            "similar_content_count": 0,
+            "high_performance_count": 0,
+            "mid_performance_count": 0,
+            "low_performance_count": 0,
+            "knowledge_patterns_applied": [
+              "89a8acf0-1861-4686-97aa-7a32c3a4a03a",
+              "e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 166436
+      },
+      "evidence_check": {
+        "valid": true,
+        "claimed": [
+          "No Shameless Plugs, Promotional Content, or Referral Links"
+        ],
+        "invalid": []
+      }
+    },
+    {
+      "test_id": "T2_question",
+      "subreddit": "Etsy",
+      "title": "Looking for recommendations: label maker for organizing my home office files?",
+      "selftext": "Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+      "allowed_ids": [
+        "54e23080-d652-45e0-a1f4-0ea339a64785",
+        "5c2523f8-f87e-4c16-a294-f3e21a8ec732",
+        "600651c6-89fa-470b-9bac-8cd01a5e37e1",
+        "89a8acf0-1861-4686-97aa-7a32c3a4a03a",
+        "97127c18-30f7-4474-ac6e-34e1a605c181",
+        "Account Suspension Posts",
+        "Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale",
+        "Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays",
+        "No AI written content",
+        "No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging",
+        "No Asking for General Newbie Advice/Asking What You Should Sell",
+        "No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context",
+        "No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations",
+        "No Shameless Plugs, Promotional Content, or Referral Links",
+        "No Trademark/Copyright Takedown Questions",
+        "Please Post Surveys and Seller Tools in the Share Your Stuff Thread",
+        "READ THE FAQ FIRST!  No Low Effort Content / Misinformation",
+        "Remember the Golden Rule and Don't Be a Dick",
+        "Weird messages from \"Etsy support\" / Scam Attempts",
+        "a3265ec4-baae-4d26-a8a7-f7c3019b28ad",
+        "abb0e28f-fd99-4673-bb9d-31547e977ba1",
+        "d31a0472-8803-469a-8990-1ca1fd2be289",
+        "e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150"
+      ],
+      "retrieval_stats": {
+        "high_count": 3,
+        "failure_count": 2,
+        "fire_patterns": 2,
+        "search_patterns": 1,
+        "failure_patterns": 1,
+        "rules_count": 14
+      },
+      "llm": {
+        "raw": "{\n  \"verdict\": \"fit\",\n  \"verdict_reason\": \"The post is a natural question seeking recommendations, which aligns with the common structures and similar high-performance cases.\",\n  \"key_issues\": [],\n  \"modification_suggestions\": [],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"high\",\n    \"reasoning\": \"The post is a natural question seeking recommendations, which aligns with the common structures and similar high-performance cases.\"\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the post's alignment with common structures and similar high-performance cases, it has the potential for interaction and discussion.\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 3,\n    \"high_performance_count\": 3,\n    \"mid_performance_count\": 0,\n    \"low_performance_count\": 0,\n    \"knowledge_patterns_applied\": [\"e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150\"]\n  }\n}",
+        "parsed": {
+          "verdict": "fit",
+          "verdict_reason": "The post is a natural question seeking recommendations, which aligns with the common structures and similar high-performance cases.",
+          "key_issues": [],
+          "modification_suggestions": [],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "high",
+            "reasoning": "The post is a natural question seeking recommendations, which aligns with the common structures and similar high-performance cases."
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the post's alignment with common structures and similar high-performance cases, it has the potential for interaction and discussion."
+          },
+          "evidence": {
+            "community_rule": true,
+            "similar_content_count": 3,
+            "high_performance_count": 3,
+            "mid_performance_count": 0,
+            "low_performance_count": 0,
+            "knowledge_patterns_applied": [
+              "e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 130773
+      },
+      "evidence_check": {
+        "valid": true,
+        "claimed": [],
+        "invalid": []
+      }
+    },
+    {
+      "test_id": "T3_promotional",
+      "subreddit": "Etsy",
+      "title": "The Niimbot label printer changed my organizing game — 40% off this week!",
+      "selftext": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+      "allowed_ids": [
+        "3d1eab90-02ff-4068-94a4-48f3c6c6ae2e",
+        "54e23080-d652-45e0-a1f4-0ea339a64785",
+        "5c2523f8-f87e-4c16-a294-f3e21a8ec732",
+        "89a8acf0-1861-4686-97aa-7a32c3a4a03a",
+        "927f2ba8-ff70-476b-a9fb-5c4cfa7cedc1",
+        "Account Suspension Posts",
+        "Celebratory Posts Are Only for 100th/1,000th/10,000th/100,000th Sale",
+        "Feedback Friday:  No Requests for Shop Feedback / Critiques Except on Fridays",
+        "No AI written content",
+        "No Asking How to Contact Previous Buyers or How to Turn Favorites Into Sales via Messaging",
+        "No Asking for General Newbie Advice/Asking What You Should Sell",
+        "No Blog Posts, Topics Unrelated to Etsy, Promoting Other E-Commerce Sites, or Links with No Context",
+        "No Posts / Comments Asking How to Violate Etsy Policies, or Encouraging Policy Violations",
+        "No Shameless Plugs, Promotional Content, or Referral Links",
+        "No Trademark/Copyright Takedown Questions",
+        "Please Post Surveys and Seller Tools in the Share Your Stuff Thread",
+        "READ THE FAQ FIRST!  No Low Effort Content / Misinformation",
+        "Remember the Golden Rule and Don't Be a Dick",
+        "Weird messages from \"Etsy support\" / Scam Attempts",
+        "abb0e28f-fd99-4673-bb9d-31547e977ba1",
+        "d31a0472-8803-469a-8990-1ca1fd2be289",
+        "d5334946-b5ad-4dc7-b9fc-8cc5bd94e15c",
+        "e0aa3ffb-fcf8-43d3-b4c1-7ab0b781f150"
+      ],
+      "retrieval_stats": {
+        "high_count": 3,
+        "failure_count": 2,
+        "fire_patterns": 2,
+        "search_patterns": 1,
+        "failure_patterns": 1,
+        "rules_count": 14
+      },
+      "llm": {
+        "raw": "{\n  \"verdict\": \"not_fit\",\n  \"verdict_reason\": \"The post contains promotional content and referral links, which is explicitly forbidden by the community rules.\",\n  \"key_issues\": [\n    {\n      \"issue\": \"Promotional content and referral links\",\n      \"why\": \"This violates the 'No Shameless Plugs, Promotional Content, or Referral Links' rule.\",\n      \"evidence_type\": [\"similar_content\", \"knowledge_pattern\"],\n      \"evidence_item_ids\": [\"No Shameless Plugs, Promotional Content, or Referral Links\", \"3d1eab90-02ff-4068-94a4-48f3c6c6ae2e\"],\n      \"fix\": \"Remove the promotional content and referral links.\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"body\",\n      \"current\": \"The Niimbot label printer changed my organizing game — 40% off this week! Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.\",\n      \"suggested\": \"The Niimbot label printer has improved my organizing. I highly recommend it for home organization.\",\n      \"reason\": \"This removes the promotion and referral link while still sharing a positive experience.\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"high\",\n    \"reasoning\": \"Based on the community rules and similar content analysis.\",\n    \"evidence_insufficient\": false\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the community's interest in business and label-related topics.\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 1,\n    \"high_performance_count\": 0,\n    \"mid_performance_count\": 1,\n    \"low_performance_count\": 1,\n    \"knowledge_patterns_applied\": [\"d31a0472-8803-469a-8990-1ca1fd2be289\"]\n  }\n}",
+        "parsed": {
+          "verdict": "not_fit",
+          "verdict_reason": "The post contains promotional content and referral links, which is explicitly forbidden by the community rules.",
+          "key_issues": [
+            {
+              "issue": "Promotional content and referral links",
+              "why": "This violates the 'No Shameless Plugs, Promotional Content, or Referral Links' rule.",
+              "evidence_type": [
+                "similar_content",
+                "knowledge_pattern"
+              ],
+              "evidence_item_ids": [
+                "No Shameless Plugs, Promotional Content, or Referral Links",
+                "3d1eab90-02ff-4068-94a4-48f3c6c6ae2e"
+              ],
+              "fix": "Remove the promotional content and referral links."
+            }
+          ],
+          "modification_suggestions": [
+            {
+              "target": "body",
+              "current": "The Niimbot label printer changed my organizing game — 40% off this week! Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+              "suggested": "The Niimbot label printer has improved my organizing. I highly recommend it for home organization.",
+              "reason": "This removes the promotion and referral link while still sharing a positive experience."
+            }
+          ],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "high",
+            "reasoning": "Based on the community rules and similar content analysis.",
+            "evidence_insufficient": false
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the community's interest in business and label-related topics."
+          },
+          "evidence": {
+            "community_rule": true,
+            "similar_content_count": 1,
+            "high_performance_count": 0,
+            "mid_performance_count": 1,
+            "low_performance_count": 1,
+            "knowledge_patterns_applied": [
+              "d31a0472-8803-469a-8990-1ca1fd2be289"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 128501
+      },
+      "evidence_check": {
+        "valid": true,
+        "claimed": [
+          "3d1eab90-02ff-4068-94a4-48f3c6c6ae2e",
+          "No Shameless Plugs, Promotional Content, or Referral Links"
+        ],
+        "invalid": []
+      }
+    },
+    {
+      "test_id": "T1_experience",
+      "subreddit": "Peptides",
+      "title": "Finally organized my pantry with a label maker — here's what I learned",
+      "selftext": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+      "allowed_ids": [
+        "13161dc2-02b5-4343-bfcb-f6572ad38f96",
+        "618a646f-6d2a-4848-82c3-a617929b799a",
+        "75c97de5-174e-43bd-8050-950ac18a6e51",
+        "8a57eb3b-e929-4d42-b239-0163a119a751",
+        "Be polite.",
+        "Low-Quality Spam",
+        "No source discussion",
+        "No sourcing of prescribed GLP-1 peptides ",
+        "Report Your Affiliations",
+        "You must be 18 or older",
+        "c0904205-1252-4655-b02c-328f0a46def0"
+      ],
+      "retrieval_stats": {
+        "high_count": 2,
+        "failure_count": 1,
+        "fire_patterns": 2,
+        "search_patterns": 0,
+        "failure_patterns": 0,
+        "rules_count": 6
+      },
+      "llm": {
+        "raw": "{\n  \"verdict\": \"fit_after_fix\",\n  \"verdict_reason\": \"The content is generally suitable but requires a few adjustments to fit the community guidelines and improve engagement.\",\n  \"key_issues\": [\n    {\n      \"issue\": \"No direct product discussion or question\",\n      \"why\": \"The community prefers posts that include product questions or experiences, which this post lacks.\",\n      \"evidence_type\": [\"similar_content\", \"knowledge_pattern\"],\n      \"evidence_item_ids\": [\"75c97de5-174e-43bd-8050-950ac18a6e51\", \"c0904205-1252-4655-b02c-328f0a46def0\"],\n      \"fix\": \"Add a question or experience related to the product.\"\n    },\n    {\n      \"issue\": \"Lack of personal disclosure\",\n      \"why\": \"The post does not disclose the user's affiliation, which is required by the community rules.\",\n      \"evidence_type\": [\"report_your_affiliations\"],\n      \"evidence_item_ids\": [\"Report Your Affiliations\"],\n      \"fix\": \"Add a sentence disclosing the user's lack of affiliation.\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"title\",\n      \"current\": \"Finally organized my pantry with a label maker — here's what I learned\",\n      \"suggested\": \"Finally organized my pantry with a Niimbot label maker — any tips for improving label quality?\",\n      \"reason\": \"This adds a question that aligns with the community's preference for experience-based discussions.\"\n    },\n    {\n      \"target\": \"body\",\n      \"current\": \"I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.\",\n      \"suggested\": \"I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it. Any tips for improving label quality or organization?\",\n      \"reason\": \"This adds a question that aligns with the community's preference for experience-based discussions.\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"high\",\n    \"reasoning\": \"Based on the community's preference for product-related discussions and the need for personal disclosure.\",\n    \"evidence_insufficient\": false\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the community's preference for experience-based discussions and the potential for engaging in a broader conversation about product usage.\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 2,\n    \"high_performance_count\": 2,\n    \"mid_performance_count\": 2,\n    \"low_performance_count\": 1,\n    \"knowledge_patterns_applied\": [\"13161dc2-02b5-4343-bfcb-f6572ad38f96\", \"c0904205-1252-4655-b02c-328f0a46def0\"]\n  }\n}",
+        "parsed": {
+          "verdict": "fit_after_fix",
+          "verdict_reason": "The content is generally suitable but requires a few adjustments to fit the community guidelines and improve engagement.",
+          "key_issues": [
+            {
+              "issue": "No direct product discussion or question",
+              "why": "The community prefers posts that include product questions or experiences, which this post lacks.",
+              "evidence_type": [
+                "similar_content",
+                "knowledge_pattern"
+              ],
+              "evidence_item_ids": [
+                "75c97de5-174e-43bd-8050-950ac18a6e51",
+                "c0904205-1252-4655-b02c-328f0a46def0"
+              ],
+              "fix": "Add a question or experience related to the product."
+            },
+            {
+              "issue": "Lack of personal disclosure",
+              "why": "The post does not disclose the user's affiliation, which is required by the community rules.",
+              "evidence_type": [
+                "report_your_affiliations"
+              ],
+              "evidence_item_ids": [
+                "Report Your Affiliations"
+              ],
+              "fix": "Add a sentence disclosing the user's lack of affiliation."
+            }
+          ],
+          "modification_suggestions": [
+            {
+              "target": "title",
+              "current": "Finally organized my pantry with a label maker — here's what I learned",
+              "suggested": "Finally organized my pantry with a Niimbot label maker — any tips for improving label quality?",
+              "reason": "This adds a question that aligns with the community's preference for experience-based discussions."
+            },
+            {
+              "target": "body",
+              "current": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+              "suggested": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it. Any tips for improving label quality or organization?",
+              "reason": "This adds a question that aligns with the community's preference for experience-based discussions."
+            }
+          ],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "high",
+            "reasoning": "Based on the community's preference for product-related discussions and the need for personal disclosure.",
+            "evidence_insufficient": false
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the community's preference for experience-based discussions and the potential for engaging in a broader conversation about product usage."
+          },
+          "evidence": {
+            "community_rule": true,
+            "similar_content_count": 2,
+            "high_performance_count": 2,
+            "mid_performance_count": 2,
+            "low_performance_count": 1,
+            "knowledge_patterns_applied": [
+              "13161dc2-02b5-4343-bfcb-f6572ad38f96",
+              "c0904205-1252-4655-b02c-328f0a46def0"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 159078
+      },
+      "evidence_check": {
+        "valid": true,
+        "claimed": [
+          "75c97de5-174e-43bd-8050-950ac18a6e51",
+          "Report Your Affiliations",
+          "c0904205-1252-4655-b02c-328f0a46def0"
+        ],
+        "invalid": []
+      }
+    },
+    {
+      "test_id": "T2_question",
+      "subreddit": "Peptides",
+      "title": "Looking for recommendations: label maker for organizing my home office files?",
+      "selftext": "Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+      "allowed_ids": [
+        "13161dc2-02b5-4343-bfcb-f6572ad38f96",
+        "618a646f-6d2a-4848-82c3-a617929b799a",
+        "75c97de5-174e-43bd-8050-950ac18a6e51",
+        "8a57eb3b-e929-4d42-b239-0163a119a751",
+        "Be polite.",
+        "Low-Quality Spam",
+        "No source discussion",
+        "No sourcing of prescribed GLP-1 peptides ",
+        "Report Your Affiliations",
+        "You must be 18 or older",
+        "c0904205-1252-4655-b02c-328f0a46def0"
+      ],
+      "retrieval_stats": {
+        "high_count": 2,
+        "failure_count": 1,
+        "fire_patterns": 2,
+        "search_patterns": 0,
+        "failure_patterns": 0,
+        "rules_count": 6
+      },
+      "llm": {
+        "raw": "{\n  \"verdict\": \"fit_after_fix\",\n  \"verdict_reason\": \"The post is relevant to the community and follows the general guidelines, but it needs to be rephrased to fit the common structures and improve engagement.\",\n  \"key_issues\": [\n    {\n      \"issue\": \"Lack of question structure\",\n      \"why\": \"The post is a statement rather than a question, which is less engaging and less likely to receive responses.\",\n      \"evidence_type\": [\"common_structures\"],\n      \"evidence_item_ids\": [\"c0904205-1252-4655-b02c-328f0a46def0\", \"75c97de5-174e-43bd-8050-950ac18a6e51\"],\n      \"fix\": \"Rephrase the post as a question.\"\n    },\n    {\n      \"issue\": \"No product mention\",\n      \"why\": \"The post does not mention any specific product, which is common in the community but could be improved by including a product recommendation.\",\n      \"evidence_type\": [\"common_structures\", \"similar_content_count\"],\n      \"evidence_item_ids\": [\"8a57eb3b-e929-4d42-b239-0163a119a751\", \"75c97de5-174e-43bd-8050-950ac18a6e51\"],\n      \"fix\": \"Include a specific product recommendation.\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"title\",\n      \"current\": \"Looking for recommendations: label maker for organizing my home office files?\",\n      \"suggested\": \"Need advice on a budget-friendly label printer for home office organization?\",\n      \"reason\": \"This phrasing is more engaging and aligns with the common structures.\"\n    },\n    {\n      \"target\": \"body\",\n      \"current\": \"Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.\",\n      \"suggested\": \"Setting up a home office and need to label file folders, cable runs, and storage bins. Any recommendations for a budget-friendly label printer? I'm looking for a reliable one.\",\n      \"reason\": \"This phrasing is more engaging and aligns with the common structures.\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"medium\",\n    \"reasoning\": \"Based on the community's preference for question structures and product mentions.\",\n    \"evidence_insufficient\": false\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the community's interest in general topics and the common structures.\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 2,\n    \"high_performance_count\": 2,\n    \"mid_performance_count\": 2,\n    \"low_performance_count\": 1,\n    \"knowledge_patterns_applied\": [\"c0904205-1252-4655-b02c-328f0a46def0\", \"13161dc2-02b5-4343-bfcb-f6572ad38f96\"]\n  }\n}",
+        "parsed": {
+          "verdict": "fit_after_fix",
+          "verdict_reason": "The post is relevant to the community and follows the general guidelines, but it needs to be rephrased to fit the common structures and improve engagement.",
+          "key_issues": [
+            {
+              "issue": "Lack of question structure",
+              "why": "The post is a statement rather than a question, which is less engaging and less likely to receive responses.",
+              "evidence_type": [
+                "common_structures"
+              ],
+              "evidence_item_ids": [
+                "c0904205-1252-4655-b02c-328f0a46def0",
+                "75c97de5-174e-43bd-8050-950ac18a6e51"
+              ],
+              "fix": "Rephrase the post as a question."
+            },
+            {
+              "issue": "No product mention",
+              "why": "The post does not mention any specific product, which is common in the community but could be improved by including a product recommendation.",
+              "evidence_type": [
+                "common_structures",
+                "similar_content_count"
+              ],
+              "evidence_item_ids": [
+                "8a57eb3b-e929-4d42-b239-0163a119a751",
+                "75c97de5-174e-43bd-8050-950ac18a6e51"
+              ],
+              "fix": "Include a specific product recommendation."
+            }
+          ],
+          "modification_suggestions": [
+            {
+              "target": "title",
+              "current": "Looking for recommendations: label maker for organizing my home office files?",
+              "suggested": "Need advice on a budget-friendly label printer for home office organization?",
+              "reason": "This phrasing is more engaging and aligns with the common structures."
+            },
+            {
+              "target": "body",
+              "current": "Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+              "suggested": "Setting up a home office and need to label file folders, cable runs, and storage bins. Any recommendations for a budget-friendly label printer? I'm looking for a reliable one.",
+              "reason": "This phrasing is more engaging and aligns with the common structures."
+            }
+          ],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "medium",
+            "reasoning": "Based on the community's preference for question structures and product mentions.",
+            "evidence_insufficient": false
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the community's interest in general topics and the common structures."
+          },
+          "evidence": {
+            "community_rule": true,
+            "similar_content_count": 2,
+            "high_performance_count": 2,
+            "mid_performance_count": 2,
+            "low_performance_count": 1,
+            "knowledge_patterns_applied": [
+              "c0904205-1252-4655-b02c-328f0a46def0",
+              "13161dc2-02b5-4343-bfcb-f6572ad38f96"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 125442
+      },
+      "evidence_check": {
+        "valid": true,
+        "claimed": [
+          "75c97de5-174e-43bd-8050-950ac18a6e51",
+          "8a57eb3b-e929-4d42-b239-0163a119a751",
+          "c0904205-1252-4655-b02c-328f0a46def0"
+        ],
+        "invalid": []
+      }
+    },
+    {
+      "test_id": "T3_promotional",
+      "subreddit": "Peptides",
+      "title": "The Niimbot label printer changed my organizing game — 40% off this week!",
+      "selftext": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+      "allowed_ids": [
+        "13161dc2-02b5-4343-bfcb-f6572ad38f96",
+        "618a646f-6d2a-4848-82c3-a617929b799a",
+        "75c97de5-174e-43bd-8050-950ac18a6e51",
+        "8a57eb3b-e929-4d42-b239-0163a119a751",
+        "Be polite.",
+        "Low-Quality Spam",
+        "No source discussion",
+        "No sourcing of prescribed GLP-1 peptides ",
+        "Report Your Affiliations",
+        "You must be 18 or older",
+        "c0904205-1252-4655-b02c-328f0a46def0"
+      ],
+      "retrieval_stats": {
+        "high_count": 2,
+        "failure_count": 1,
+        "fire_patterns": 2,
+        "search_patterns": 0,
+        "failure_patterns": 0,
+        "rules_count": 6
+      },
+      "llm": {
+        "raw": "{\n  \"verdict\": \"not_fit\",\n  \"verdict_reason\": \"The post is a commercial promotion and does not fit the community's content structure or engagement patterns.\",\n  \"key_issues\": [\n    {\n      \"issue\": \"Commercial content\",\n      \"why\": \"The post is a direct commercial promotion, which is not aligned with the community's engagement patterns and rules.\",\n      \"evidence_type\": [\"commercial_content_restricted\", \"Low-Quality Spam\"],\n      \"evidence_item_ids\": [\"Low-Quality Spam\", \"commercial_content_restricted\"],\n      \"fix\": \"Rephrase the post to share personal experience or ask for advice.\"\n    },\n    {\n      \"issue\": \"Lack of engagement\",\n      \"why\": \"The post does not follow the community's typical engagement patterns, which favor question or experience-based content.\",\n      \"evidence_type\": [\"common_structures\", \"similar_content_count\"],\n      \"evidence_item_ids\": [\"c0904205-1252-4655-b02c-328f0a46def0\", \"75c97de5-174e-43bd-8050-950ac18a6e51\"],\n      \"fix\": \"Frame the post as a question or seek advice from the community.\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"title\",\n      \"current\": \"The Niimbot label printer changed my organizing game — 40% off this week!\",\n      \"suggested\": \"Is the Niimbot label printer worth the investment for home organization?\",\n      \"reason\": \"This question format aligns with the community's engagement patterns and encourages discussion.\"\n    },\n    {\n      \"target\": \"body\",\n      \"current\": \"Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.\",\n      \"suggested\": \"I recently discovered a great deal on the Niimbot label printer, which is now 40% off on Amazon. Has anyone else used it for home organization? What are your thoughts on its performance?\",\n      \"reason\": \"This body text incorporates personal experience and seeks community feedback, which is more engaging for the community.\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"low\",\n    \"reasoning\": \"The community prefers question-based or experience-sharing posts, and the current post is a commercial promotion.\",\n    \"evidence_insufficient\": false\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the community's engagement patterns and the need for more interaction and discussion.\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 5,\n    \"high_performance_count\": 2,\n    \"mid_performance_count\": 2,\n    \"low_performance_count\": 1,\n    \"knowledge_patterns_applied\": [\"c0904205-1252-4655-b02c-328f0a46def0\", \"13161dc2-02b5-4343-bfcb-f6572ad38f96\"]\n  }\n}",
+        "parsed": {
+          "verdict": "not_fit",
+          "verdict_reason": "The post is a commercial promotion and does not fit the community's content structure or engagement patterns.",
+          "key_issues": [
+            {
+              "issue": "Commercial content",
+              "why": "The post is a direct commercial promotion, which is not aligned with the community's engagement patterns and rules.",
+              "evidence_type": [
+                "commercial_content_restricted",
+                "Low-Quality Spam"
+              ],
+              "evidence_item_ids": [
+                "Low-Quality Spam",
+                "commercial_content_restricted"
+              ],
+              "fix": "Rephrase the post to share personal experience or ask for advice."
+            },
+            {
+              "issue": "Lack of engagement",
+              "why": "The post does not follow the community's typical engagement patterns, which favor question or experience-based content.",
+              "evidence_type": [
+                "common_structures",
+                "similar_content_count"
+              ],
+              "evidence_item_ids": [
+                "c0904205-1252-4655-b02c-328f0a46def0",
+                "75c97de5-174e-43bd-8050-950ac18a6e51"
+              ],
+              "fix": "Frame the post as a question or seek advice from the community."
+            }
+          ],
+          "modification_suggestions": [
+            {
+              "target": "title",
+              "current": "The Niimbot label printer changed my organizing game — 40% off this week!",
+              "suggested": "Is the Niimbot label printer worth the investment for home organization?",
+              "reason": "This question format aligns with the community's engagement patterns and encourages discussion."
+            },
+            {
+              "target": "body",
+              "current": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+              "suggested": "I recently discovered a great deal on the Niimbot label printer, which is now 40% off on Amazon. Has anyone else used it for home organization? What are your thoughts on its performance?",
+              "reason": "This body text incorporates personal experience and seeks community feedback, which is more engaging for the community."
+            }
+          ],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "low",
+            "reasoning": "The community prefers question-based or experience-sharing posts, and the current post is a commercial promotion.",
+            "evidence_insufficient": false
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the community's engagement patterns and the need for more interaction and discussion."
+          },
+          "evidence": {
+            "community_rule": true,
+            "similar_content_count": 5,
+            "high_performance_count": 2,
+            "mid_performance_count": 2,
+            "low_performance_count": 1,
+            "knowledge_patterns_applied": [
+              "c0904205-1252-4655-b02c-328f0a46def0",
+              "13161dc2-02b5-4343-bfcb-f6572ad38f96"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 122750
+      },
+      "evidence_check": {
+        "valid": false,
+        "claimed": [
+          "75c97de5-174e-43bd-8050-950ac18a6e51",
+          "Low-Quality Spam",
+          "c0904205-1252-4655-b02c-328f0a46def0",
+          "commercial_content_restricted"
+        ],
+        "invalid": [
+          "commercial_content_restricted"
+        ]
+      }
+    }
+  ]
+}
