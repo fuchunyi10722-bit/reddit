@@ -46,8 +46,12 @@ class CaseSummary:
     topic_tags: list[str]
 
     def to_context_line(self) -> str:
-        """格式化为单行上下文(控制 token)。"""
+        """格式化为单行上下文(控制 token)。
+
+        必须在最前面显式标出 id,以便 LLM 能在 evidence_item_ids 中引用此 ID。
+        """
         return (
+            f"id={self.reference_item_id} | "
             f"[{self.performance_tier}, score={self.score}, comments={self.num_comments}] "
             f"{self.title[:100]} | "
             f"structure={','.join(self.structure_tags)}, "
@@ -67,7 +71,9 @@ class PatternSummary:
     sample_count: int
 
     def to_context_line(self) -> str:
+        """格式化为单行上下文。必须显式标出 pattern_id,以便 LLM 引用。"""
         return (
+            f"pattern_id={self.pattern_id} | "
             f"[{self.pattern_type}, status={self.status}, samples={self.sample_count}] "
             f"{self.description[:150]}"
         )
@@ -91,19 +97,38 @@ class RetrievalResult:
     all_retrieved_item_ids: set = field(default_factory=set)
 
     def build_llm_context(self, new_content: str) -> str:
-        """构建 LLM 上下文(控制 token 长度)。"""
+        """构建 LLM 上下文(控制 token 长度)。
+
+        每个 evidence 必须显式展示其 evidence_item_id,以便 LLM 在
+        key_issues[].evidence_item_ids 中引用此 ID。规则用 short_name
+        作为稳定 ID,案例用 ReferenceItem.id,规律用 PatternSummary.pattern_id。
+        """
         lines: list[str] = []
+
+        # 可引用的 evidence_item_ids 清单(在末尾也再列一次,确保 LLM 看见)
+        allowed_ids: list[str] = []
 
         # 社区规则
         lines.append("=== COMMUNITY RULES ===")
         rules = self.rules_summary
         if rules:
             for key, val in rules.items():
-                lines.append(f"{key}: {val}")
+                if key == "rules" and isinstance(val, list):
+                    # val 是规则列表,每条规则有 short_name 字段作为稳定 ID
+                    for rule in val:
+                        rule_id = (rule or {}).get("short_name") or ""
+                        rule_desc = (rule or {}).get("description") or ""
+                        if rule_id:
+                            lines.append(f"rule_id={rule_id} | {rule_desc}")
+                            allowed_ids.append(rule_id)
+                        else:
+                            lines.append(str(rule)[:200])
+                else:
+                    lines.append(f"{key}: {val}")
         else:
             lines.append("(no rules collected)")
 
-        # CommunityProfile 摘要
+        # CommunityProfile 摘要(不直接作为 evidence 引用,只作背景)
         lines.append("\n=== COMMUNITY SUMMARY ===")
         cs = self.community_summary
         if cs:
@@ -118,6 +143,7 @@ class RetrievalResult:
         if self.similar_high:
             for c in self.similar_high:
                 lines.append(c.to_context_line())
+                allowed_ids.append(c.reference_item_id)
         else:
             lines.append("(no high-performance cases retrieved)")
 
@@ -126,6 +152,7 @@ class RetrievalResult:
         if self.similar_failure:
             for c in self.similar_failure:
                 lines.append(c.to_context_line())
+                allowed_ids.append(c.reference_item_id)
         else:
             lines.append("(no failure cases retrieved)")
 
@@ -135,12 +162,20 @@ class RetrievalResult:
         if all_patterns:
             for p in all_patterns:
                 lines.append(p.to_context_line())
+                allowed_ids.append(p.pattern_id)
         else:
             lines.append("(no patterns)")
 
         # 新内容
         lines.append("\n=== NEW CONTENT TO ANALYZE ===")
         lines.append(new_content[:2000])
+
+        # 可用 evidence_item_ids 清单(强制 LLM 只能引用这些 ID)
+        lines.append("\n=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===")
+        lines.append(", ".join(sorted(set(allowed_ids))))
+
+        # 同步更新 all_retrieved_item_ids(用于后续校验)
+        self.all_retrieved_item_ids = set(allowed_ids)
 
         return "\n".join(lines)
 

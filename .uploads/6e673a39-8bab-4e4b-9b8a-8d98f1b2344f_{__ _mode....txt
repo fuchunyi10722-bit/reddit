@@ -1,0 +1,292 @@
+{
+  "model": "qwen2.5:7b",
+  "base": "http://localhost:11434",
+  "results": [
+    {
+      "test_id": "T1_experience",
+      "title": "Finally organized my pantry with a label maker — here's what I learned",
+      "selftext": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+      "allowed_ids": [
+        "8a57eb3b-e929-4d42-b239-0163a119a751",
+        "618a646f-6d2a-4848-82c3-a617929b799a",
+        "75c97de5-174e-43bd-8050-950ac18a6e51"
+      ],
+      "llm": {
+        "raw": "{\n  \"verdict\": \"fit_after_fix\",\n  \"verdict_reason\": \"The post fits the community's interests in general topics and experiences, but it lacks a question structure and does not disclose affiliation, which are required by community rules.\",\n  \"key_issues\": [\n    {\n      \"issue\": \"Lack of question structure\",\n      \"why\": \"The community prefers posts with a question or experience structure, which this post lacks.\",\n      \"evidence_type\": [\"similar_content\"],\n      \"evidence_item_ids\": [\"structure=experience\"],\n      \"fix\": \"Add a question or ask for advice related to the topic.\"\n    },\n    {\n      \"issue\": \"No disclosure of affiliation\",\n      \"why\": \"The community requires disclosure of affiliations when linking to one's own site or product.\",\n      \"evidence_type\": [\"community_rule\"],\n      \"evidence_item_ids\": [\"Report Your Affiliations\"],\n      \"fix\": \"Add a disclosure statement at the end of the post.\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"title\",\n      \"current\": \"Finally organized my pantry with a label maker — here's what I learned\",\n      \"suggested\": \"Pantry organization success with Niimbot label printer: Tips and tricks\",\n      \"reason\": \"More specific and adds a question structure.\"\n    },\n    {\n      \"target\": \"body\",\n      \"current\": \"I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.\",\n      \"suggested\": \"I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it. Is this a common solution for kitchen organization?\",\n      \"reason\": \"Adds a question structure and disclosure.\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"medium\",\n    \"reasoning\": \"Based on the community's preference for questions and the need for disclosure.\",\n    \"evidence_insufficient\": false\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the community's interest in general topics and the potential for discussion.\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 2,\n    \"high_performance_count\": 2,\n    \"mid_performance_count\": 2,\n    \"low_performance_count\": 1,\n    \"knowledge_patterns_applied\": [\"fire\"]\n  }\n}",
+        "parsed": {
+          "verdict": "fit_after_fix",
+          "verdict_reason": "The post fits the community's interests in general topics and experiences, but it lacks a question structure and does not disclose affiliation, which are required by community rules.",
+          "key_issues": [
+            {
+              "issue": "Lack of question structure",
+              "why": "The community prefers posts with a question or experience structure, which this post lacks.",
+              "evidence_type": [
+                "similar_content"
+              ],
+              "evidence_item_ids": [
+                "structure=experience"
+              ],
+              "fix": "Add a question or ask for advice related to the topic."
+            },
+            {
+              "issue": "No disclosure of affiliation",
+              "why": "The community requires disclosure of affiliations when linking to one's own site or product.",
+              "evidence_type": [
+                "community_rule"
+              ],
+              "evidence_item_ids": [
+                "Report Your Affiliations"
+              ],
+              "fix": "Add a disclosure statement at the end of the post."
+            }
+          ],
+          "modification_suggestions": [
+            {
+              "target": "title",
+              "current": "Finally organized my pantry with a label maker — here's what I learned",
+              "suggested": "Pantry organization success with Niimbot label printer: Tips and tricks",
+              "reason": "More specific and adds a question structure."
+            },
+            {
+              "target": "body",
+              "current": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it.",
+              "suggested": "I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it. Is this a common solution for kitchen organization?",
+              "reason": "Adds a question structure and disclosure."
+            }
+          ],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "medium",
+            "reasoning": "Based on the community's preference for questions and the need for disclosure.",
+            "evidence_insufficient": false
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the community's interest in general topics and the potential for discussion."
+          },
+          "evidence": {
+            "community_rule": true,
+            "similar_content_count": 2,
+            "high_performance_count": 2,
+            "mid_performance_count": 2,
+            "low_performance_count": 1,
+            "knowledge_patterns_applied": [
+              "fire"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 128893
+      },
+      "evidence_check": {
+        "valid": false,
+        "claimed": [
+          "Report Your Affiliations",
+          "structure=experience"
+        ],
+        "invalid": [
+          "Report Your Affiliations",
+          "structure=experience"
+        ]
+      }
+    },
+    {
+      "test_id": "T2_question",
+      "title": "Looking for recommendations: label maker for organizing my home office files?",
+      "selftext": "Setting up a home office and need to label file folders, cable runs, and storage bins. Anyone have a label printer they recommend? Budget-friendly preferred.",
+      "allowed_ids": [
+        "8a57eb3b-e929-4d42-b239-0163a119a751",
+        "618a646f-6d2a-4848-82c3-a617929b799a",
+        "75c97de5-174e-43bd-8050-950ac18a6e51"
+      ],
+      "llm": {
+        "raw": "{\n  \"verdict\": \"fit_after_fix\",\n  \"verdict_reason\": \"The post is a question and fits the community's common structures, but it does not disclose affiliations and lacks a product recommendation, which are common in high-performance posts.\",\n  \"key_issues\": [\n    {\n      \"issue\": \"No product recommendation\",\n      \"why\": \"High-performance posts in this community often include product recommendations.\",\n      \"evidence_type\": [\"high_performance_content\"],\n      \"evidence_item_ids\": [\"high, score=131, comments=78\"],\n      \"fix\": \"Include a specific product recommendation.\"\n    },\n    {\n      \"issue\": \"Lack of disclosure of affiliations\",\n      \"why\": \"The community requires disclosure of affiliations when linking to external sites.\",\n      \"evidence_type\": [\"community_rule\"],\n      \"evidence_item_ids\": [\"Report Your Affiliations\"],\n      \"fix\": \"Disclose if you are affiliated with any label printer brands.\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"title\",\n      \"current\": \"Looking for recommendations: label maker for organizing my home office files?\",\n      \"suggested\": \"Looking for recommendations: Best budget-friendly label maker for home office organization?\",\n      \"reason\": \"Clarifies the specific need and adds a product-related term.\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"medium\",\n    \"reasoning\": \"Based on the community's preference for high-quality questions and the need for disclosure.\"\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the community's interest in general topics and the common structures of questions and experiences.\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 2,\n    \"high_performance_count\": 2,\n    \"mid_performance_count\": 0,\n    \"low_performance_count\": 1,\n    \"knowledge_patterns_applied\": [\"fire, status=candidate, samples=2\"]\n  }\n}",
+        "parsed": {
+          "verdict": "fit_after_fix",
+          "verdict_reason": "The post is a question and fits the community's common structures, but it does not disclose affiliations and lacks a product recommendation, which are common in high-performance posts.",
+          "key_issues": [
+            {
+              "issue": "No product recommendation",
+              "why": "High-performance posts in this community often include product recommendations.",
+              "evidence_type": [
+                "high_performance_content"
+              ],
+              "evidence_item_ids": [
+                "high, score=131, comments=78"
+              ],
+              "fix": "Include a specific product recommendation."
+            },
+            {
+              "issue": "Lack of disclosure of affiliations",
+              "why": "The community requires disclosure of affiliations when linking to external sites.",
+              "evidence_type": [
+                "community_rule"
+              ],
+              "evidence_item_ids": [
+                "Report Your Affiliations"
+              ],
+              "fix": "Disclose if you are affiliated with any label printer brands."
+            }
+          ],
+          "modification_suggestions": [
+            {
+              "target": "title",
+              "current": "Looking for recommendations: label maker for organizing my home office files?",
+              "suggested": "Looking for recommendations: Best budget-friendly label maker for home office organization?",
+              "reason": "Clarifies the specific need and adds a product-related term."
+            }
+          ],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "medium",
+            "reasoning": "Based on the community's preference for high-quality questions and the need for disclosure."
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the community's interest in general topics and the common structures of questions and experiences."
+          },
+          "evidence": {
+            "community_rule": true,
+            "similar_content_count": 2,
+            "high_performance_count": 2,
+            "mid_performance_count": 0,
+            "low_performance_count": 1,
+            "knowledge_patterns_applied": [
+              "fire, status=candidate, samples=2"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 71045
+      },
+      "evidence_check": {
+        "valid": false,
+        "claimed": [
+          "Report Your Affiliations",
+          "high, score=131, comments=78"
+        ],
+        "invalid": [
+          "Report Your Affiliations",
+          "high, score=131, comments=78"
+        ]
+      }
+    },
+    {
+      "test_id": "T3_promotional",
+      "title": "The Niimbot label printer changed my organizing game — 40% off this week!",
+      "selftext": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+      "allowed_ids": [
+        "8a57eb3b-e929-4d42-b239-0163a119a751",
+        "618a646f-6d2a-4848-82c3-a617929b799a",
+        "75c97de5-174e-43bd-8050-950ac18a6e51"
+      ],
+      "llm": {
+        "raw": "{\n  \"verdict\": \"not_fit\",\n  \"verdict_reason\": \"The post does not fit the community's interests and does not adhere to the community rules, specifically the 'No source discussion' rule.\",\n  \"key_issues\": [\n    {\n      \"issue\": \"Promotional content without disclosure\",\n      \"why\": \"The post is promotional in nature and does not disclose the affiliation with the product, violating the 'Report Your Affiliations' rule.\",\n      \"evidence_type\": [\"community_rule\", \"similar_content\"],\n      \"evidence_item_ids\": [\"Report Your Affiliations\", \"similar_content_count\"],\n      \"fix\": \"Disclose the affiliation and ensure the post aligns with the community's interests.\"\n    },\n    {\n      \"issue\": \"Lack of community interest\",\n      \"why\": \"The community is primarily interested in general topics and baking, not product promotions.\",\n      \"evidence_type\": [\"community_rule\", \"similar_content\"],\n      \"evidence_item_ids\": [\"common_structures\", \"product_acceptance\"],\n      \"fix\": \"Focus on sharing experiences or general advice related to the community's interests.\"\n    }\n  ],\n  \"modification_suggestions\": [\n    {\n      \"target\": \"title\",\n      \"current\": \"The Niimbot label printer changed my organizing game — 40% off this week!\",\n      \"suggested\": \"Niimbot label printer: A game-changer for organizing\",\n      \"reason\": \"This title is more neutral and aligns with the community's interests.\"\n    },\n    {\n      \"target\": \"body\",\n      \"current\": \"Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.\",\n      \"suggested\": \"Recently, I discovered the Niimbot label printer and found it to be incredibly useful for organizing. I've been using it for a while now, and it has really improved my home organization. If you're looking for a reliable label printer, I highly recommend giving it a try!\",\n      \"reason\": \"This body provides value to the community by sharing personal experience and aligning with the community's interests.\"\n    }\n  ],\n  \"comment_participation_advice\": {\n    \"should_reply_natural_comments\": true,\n    \"should_supplement_own_comment\": false,\n    \"should_wait_for_natural_discussion\": true,\n    \"should_share_product_in_comments\": false,\n    \"should_participate_before_posting\": false,\n    \"confidence\": \"low\",\n    \"reasoning\": \"The community does not show high interest in product promotions and the post does not align with the community rules.\",\n    \"evidence_insufficient\": true\n  },\n  \"potential_value\": {\n    \"value_types\": [\"interaction\", \"discussion\"],\n    \"reasoning\": \"Based on the community's primary interests and the low engagement with similar promotional content.\"\n  },\n  \"evidence\": {\n    \"community_rule\": true,\n    \"similar_content_count\": 5,\n    \"high_performance_count\": 2,\n    \"mid_performance_count\": 2,\n    \"low_performance_count\": 1,\n    \"knowledge_patterns_applied\": [\"fire\"]\n  }\n}",
+        "parsed": {
+          "verdict": "not_fit",
+          "verdict_reason": "The post does not fit the community's interests and does not adhere to the community rules, specifically the 'No source discussion' rule.",
+          "key_issues": [
+            {
+              "issue": "Promotional content without disclosure",
+              "why": "The post is promotional in nature and does not disclose the affiliation with the product, violating the 'Report Your Affiliations' rule.",
+              "evidence_type": [
+                "community_rule",
+                "similar_content"
+              ],
+              "evidence_item_ids": [
+                "Report Your Affiliations",
+                "similar_content_count"
+              ],
+              "fix": "Disclose the affiliation and ensure the post aligns with the community's interests."
+            },
+            {
+              "issue": "Lack of community interest",
+              "why": "The community is primarily interested in general topics and baking, not product promotions.",
+              "evidence_type": [
+                "community_rule",
+                "similar_content"
+              ],
+              "evidence_item_ids": [
+                "common_structures",
+                "product_acceptance"
+              ],
+              "fix": "Focus on sharing experiences or general advice related to the community's interests."
+            }
+          ],
+          "modification_suggestions": [
+            {
+              "target": "title",
+              "current": "The Niimbot label printer changed my organizing game — 40% off this week!",
+              "suggested": "Niimbot label printer: A game-changer for organizing",
+              "reason": "This title is more neutral and aligns with the community's interests."
+            },
+            {
+              "target": "body",
+              "current": "Just sharing a great deal I found. Niimbot label printer 40% off on Amazon this week. Link in comments. Perfect for home organization.",
+              "suggested": "Recently, I discovered the Niimbot label printer and found it to be incredibly useful for organizing. I've been using it for a while now, and it has really improved my home organization. If you're looking for a reliable label printer, I highly recommend giving it a try!",
+              "reason": "This body provides value to the community by sharing personal experience and aligning with the community's interests."
+            }
+          ],
+          "comment_participation_advice": {
+            "should_reply_natural_comments": true,
+            "should_supplement_own_comment": false,
+            "should_wait_for_natural_discussion": true,
+            "should_share_product_in_comments": false,
+            "should_participate_before_posting": false,
+            "confidence": "low",
+            "reasoning": "The community does not show high interest in product promotions and the post does not align with the community rules.",
+            "evidence_insufficient": true
+          },
+          "potential_value": {
+            "value_types": [
+              "interaction",
+              "discussion"
+            ],
+            "reasoning": "Based on the community's primary interests and the low engagement with similar promotional content."
+          },
+          "evidence": {
+            "community_rule": true,
+            "similar_content_count": 5,
+            "high_performance_count": 2,
+            "mid_performance_count": 2,
+            "low_performance_count": 1,
+            "knowledge_patterns_applied": [
+              "fire"
+            ]
+          }
+        },
+        "ok": true,
+        "ms": 97148
+      },
+      "evidence_check": {
+        "valid": false,
+        "claimed": [
+          "Report Your Affiliations",
+          "common_structures",
+          "product_acceptance",
+          "similar_content_count"
+        ],
+        "invalid": [
+          "Report Your Affiliations",
+          "common_structures",
+          "product_acceptance",
+          "similar_content_count"
+        ]
+      }
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import urllib.request
 BASE = "http://localhost:11434"
 MODEL = "qwen2.5:7b"
 
+# 新版 system prompt:明确告诉 LLM 如何引用 evidence ID
 SYS = """You are a Reddit content analyst for a label printer product (NIIMBOT).
 You help decide whether planned content fits a target subreddit and how to improve it.
 Output valid JSON only, no markdown, no explanation.
@@ -12,19 +13,71 @@ Schema:
 {"verdict":"fit|fit_after_fix|not_fit","verdict_reason":"string","key_issues":[{"issue":"specific problem","why":"why this is a problem in THIS community","evidence_type":["community_rule","similar_content","high_performance_content","low_performance_content","knowledge_pattern"],"evidence_item_ids":["id1"],"fix":"specific actionable fix"}],"modification_suggestions":[{"target":"title|body","current":"whats wrong","suggested":"replacement","reason":"why better"}],"comment_participation_advice":{"should_reply_natural_comments":true,"should_supplement_own_comment":false,"should_wait_for_natural_discussion":true,"should_share_product_in_comments":false,"should_participate_before_posting":false,"confidence":"high|medium|low|insufficient","reasoning":"based on","evidence_insufficient":false},"potential_value":{"value_types":["interaction","discussion","search","product_awareness","community_penetration"],"reasoning":"based on"},"evidence":{"community_rule":true,"similar_content_count":5,"high_performance_count":2,"mid_performance_count":2,"low_performance_count":1,"knowledge_patterns_applied":["pattern_id1"]}}
 
 Rules:
+- verdict: fit=suitable as-is; fit_after_fix=needs modification; not_fit=violates rules or fundamentally mismatched
 - Base your verdict, key_issues, and suggestions PRIMARILY on the evidence provided in the context above (community rules, similar posts, patterns). Do NOT apply generic Reddit advice that is not supported by the provided evidence for THIS community.
 - key_issues: max 3, each must be SPECIFIC to THIS community (not generic like "improve quality")
-- evidence_item_ids: MUST come from the cases provided in context; do NOT invent IDs.
+- evidence_item_ids: MUST be EXACT strings copied from the context above. Each evidence in context is prefixed with its id:
+    - Rules: "rule_id=<rule short_name>" -> use the short_name (e.g. "Report Your Affiliations")
+    - Cases: "id=<UUID>" -> use the full UUID
+    - Patterns: "pattern_id=<UUID>" -> use the full UUID
+  Do NOT invent IDs, do NOT use field names like "common_structures" or "similar_content_count" as IDs.
+  The context provides an ALLOWED EVIDENCE_ITEM_IDS section listing every valid ID - ONLY use IDs from that list.
 - comment_participation_advice: if evidence insufficient, set evidence_insufficient=true and confidence="insufficient", do NOT fabricate advice
 - Do NOT predict exact engagement numbers; use potential_value for value TYPE only"""
 
-RULES = "rules: [{'short_name':'Be polite.'},{'short_name':'Report Your Affiliations','description':'If you link to your own site, you need to disclose that fact.'},{'short_name':'Low-Quality Spam','description':'Astroturfing is not allowed. Will result in a ban.'},{'short_name':'You must be 18 or older'},{'short_name':'No sourcing of prescribed GLP-1 peptides','description':'These compounds cannot be sourced here, no vendor discussion for them.'},{'short_name':'No source discussion','description':''}]"
-SUMMARY = "top_topics: [{'topic':'general','count':4},{'topic':'baking','count':1}]\ncommon_structures: [{'structure':'question','count':5},{'structure':'experience','count':4}]\nproduct_acceptance: {'high':{'none':2},'mid':{'none':2},'low':{'none':1}}"
-HIGH = "[high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general\n[high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general"
-FAIL = "[failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general"
-PAT = "[fire, status=candidate, samples=2] mid tier posts, question structure 2/2 times. example: how to store unreconstituted glutathion?\n[fire, status=candidate, samples=2] high tier posts, question structure 2/2 times. example: Is my reta and tesa water supposded to look like this?"
+# 新版社区规则:每条规则前显式标 rule_id=<short_name>
+RULES = """rules: [{'short_name':'Be polite.','description':"You shouldn't ever be personally attacking another user in this subreddit."},{'short_name':'Report Your Affiliations','description':"If you're linking to your own site, you need to disclose that fact."},{'short_name':'Low-Quality Spam','description':'Astroturfing is not allowed. Will result in a ban.'},{'short_name':'You must be 18 or older','description':'You must be 18 years of age or older to view and engage in this subreddit.'},{'short_name':'No sourcing of prescribed GLP-1 peptides','description':'These compounds cannot be sourced here, no vendor discussion for them.'},{'short_name':'No source discussion','description':''}]
+karma_requirement: None
+account_age_requirement: None
+flair_required: False
+link_restricted: False
+commercial_content_restricted: False
+post_frequency_limit: None
+sensitive_content_rules: []"""
 
-ALLOWED_IDS = ["8a57eb3b-e929-4d42-b239-0163a119a751","618a646f-6d2a-4848-82c3-a617929b799a","75c97de5-174e-43bd-8050-950ac18a6e51"]
+# 重写为 build_llm_context 的新格式:规则带 rule_id,案例带 id=,pattern 带 pattern_id=
+RULES_FORMATTED = """rule_id=Be polite. | You shouldn't ever be personally attacking another user in this subreddit.
+rule_id=Report Your Affiliations | If you're linking to your own site, you need to disclose that fact. Either through getting flair from a moderator or by telling people when you're linking your own site.
+rule_id=Low-Quality Spam | Low-Quality Spam/Astroturfing is not allowed. Necroing posts, using throwaways to shill sites, spamming random posts/comment chains and more will result in a ban.
+rule_id=You must be 18 or older | You must be 18 years of age or older to view and engage in this subreddit.
+rule_id=No sourcing of prescribed GLP-1 peptides | These compounds cannot be sourced here, no vendor discussion for them.
+rule_id=No source discussion | (rule with no further description - strict moderator ban on source discussion)
+karma_requirement: None
+account_age_requirement: None
+flair_required: False
+link_restricted: False
+commercial_content_restricted: False
+post_frequency_limit: None"""
+
+SUMMARY = "top_topics: [{'topic':'general','count':4},{'topic':'baking','count':1}]\ncommon_structures: [{'structure':'question','count':5},{'structure':'experience','count':4}]\nproduct_acceptance: {'high':{'none':2},'mid':{'none':2},'low':{'none':1}}"
+
+# 新版案例格式:每行最前面加 id=<UUID>
+HIGH = """id=8a57eb3b-e929-4d42-b239-0163a119a751 | [high, score=131, comments=78] No more source discussion. At least for now, none can be allowed. | structure=question,experience, product=none, search=low, topics=general
+id=618a646f-6d2a-4848-82c3-a617929b799a | [high, score=11, comments=11] Is my reta and tesa water supposded to look like this? | structure=question,experience, product=none, search=high, topics=general"""
+
+FAIL = "id=75c97de5-174e-43bd-8050-950ac18a6e51 | [failure, score=0, comments=12] Thinking of stacking Reta with GHK-Cu, MOTS-C | structure=question,experience, product=none, search=mid, topics=general"
+
+# 新版 pattern 格式:每行最前面加 pattern_id=<UUID>
+PAT = """pattern_id=fire_pattern_mid_question | [fire, status=candidate, samples=2] mid tier posts, question structure 2/2 times. example: how to store unreconstituted glutathion?
+pattern_id=fire_pattern_high_question | [fire, status=candidate, samples=2] high tier posts, question structure 2/2 times. example: Is my reta and tesa water supposded to look like this?"""
+
+# 完整允许 ID 列表 = 规则 short_name + 案例 UUID + pattern_id
+ALLOWED_IDS = [
+    # 规则
+    "Be polite.",
+    "Report Your Affiliations",
+    "Low-Quality Spam",
+    "You must be 18 or older",
+    "No sourcing of prescribed GLP-1 peptides",
+    "No source discussion",
+    # 案例 UUID
+    "8a57eb3b-e929-4d42-b239-0163a119a751",
+    "618a646f-6d2a-4848-82c3-a617929b799a",
+    "75c97de5-174e-43bd-8050-950ac18a6e51",
+    # pattern
+    "fire_pattern_mid_question",
+    "fire_pattern_high_question",
+]
 
 TESTS = [
     {"id":"T1_experience","title":"Finally organized my pantry with a label maker — here's what I learned","selftext":"I've been struggling with pantry chaos for years. Bought a Niimbot label printer last month, and it completely changed how my family uses the kitchen. Sharing before/after photos and what worked/didn't. Not affiliated, just genuinely happy with it."},
@@ -34,7 +87,7 @@ TESTS = [
 
 def build_prompt(t):
     return f"""=== COMMUNITY RULES ===
-{RULES}
+{RULES_FORMATTED}
 
 === COMMUNITY SUMMARY ===
 {SUMMARY}
@@ -50,7 +103,10 @@ def build_prompt(t):
 
 === NEW CONTENT TO ANALYZE ===
 {t['title']}
-{t['selftext']}"""
+{t['selftext']}
+
+=== ALLOWED EVIDENCE_ITEM_IDS (ONLY THESE MAY BE USED IN evidence_item_ids) ===
+{', '.join(sorted(set(ALLOWED_IDS)))}"""
 
 def call_ollama(system, user):
     payload = {"model":MODEL,"messages":[{"role":"system","content":system},{"role":"user","content":user}],"stream":False,"options":{"temperature":0.3,"num_predict":2000},"format":"json"}
@@ -104,6 +160,7 @@ for i, t in enumerate(TESTS):
         print(f"OK ({call['ms']}ms) verdict={p.get('verdict','?')}")
         print(f"  evidence_ids: {v['claimed']}")
         if invalid: print(f"  ⚠ 无效 ID: {invalid}")
+        else: print(f"  ✓ evidence 校验通过")
     else:
         v = {"valid": False, "reason": "no parsed JSON"}
         print(f"FAIL: {call.get('err','parse failed')}")

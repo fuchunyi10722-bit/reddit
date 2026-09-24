@@ -89,8 +89,14 @@ Schema:
 
 Rules:
 - verdict: fit=suitable as-is; fit_after_fix=needs modification; not_fit=violates rules or fundamentally mismatched
-- key_issues: max 3, each must be SPECIFIC (not generic like "improve quality")
-- evidence_item_ids: MUST come from the cases provided in context; do NOT invent IDs
+- Base your verdict, key_issues, and suggestions PRIMARILY on the evidence provided in the context above (community rules, similar posts, patterns). Do NOT apply generic Reddit advice that is not supported by the provided evidence for THIS community.
+- key_issues: max 3, each must be SPECIFIC to THIS community (not generic like "improve quality")
+- evidence_item_ids: MUST be EXACT strings copied from the context above. Each evidence in context is prefixed with its id:
+    - Rules: "rule_id=<rule short_name>" → use the short_name (e.g. "Report Your Affiliations")
+    - Cases: "id=<UUID>" → use the full UUID
+    - Patterns: "pattern_id=<UUID>" → use the full UUID
+  Do NOT invent IDs, do NOT use field names like "common_structures" or "similar_content_count" as IDs.
+  The context provides an "ALLOWED EVIDENCE_ITEM_IDS" section listing every valid ID — only use IDs from that list.
 - comment_participation_advice: if evidence is insufficient, set evidence_insufficient=true and confidence="insufficient", do NOT fabricate advice
 - Do NOT predict exact engagement numbers; use potential_value for value TYPE only
 """
