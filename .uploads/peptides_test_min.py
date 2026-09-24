@@ -134,9 +134,9 @@ try:
     if not any("qwen" in m.lower() for m in models):
         print("没有 Qwen 模型! 请先运行: ollama pull qwen2.5:7b")
         sys.exit(1)
-    global MODEL
     match = [m for m in models if MODEL in m or MODEL.split(":")[0] in m]
-    if match: MODEL = match[0]
+    if match:
+        MODEL = match[0]
     print("使用模型:", MODEL)
 except Exception as e:
     print("Ollama 不可达:", e)
