@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今晚吃什么 · 抖音快手菜转盘</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #fff3e6 0%, #ffe0c2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+    color: #3a2410;
+  }
+  h1 {
+    font-size: 28px;
+    margin-bottom: 4px;
+    color: #c0392b;
+    letter-spacing: 2px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #8b5a2b;
+    margin-bottom: 20px;
+  }
+  .stage {
+    position: relative;
+    width: min(90vw, 420px);
+    height: min(90vw, 420px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pointer {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 18px solid transparent;
+    border-right: 18px solid transparent;
+    border-top: 34px solid #c0392b;
+    z-index: 5;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,.25));
+  }
+  .pointer::after {
+    content: "";
+    position: absolute;
+    top: -34px;
+    left: -10px;
+    width: 20px;
+    height: 20px;
+    background: #c0392b;
+    border-radius: 50%;
+    border: 3px solid #fff;
+  }
+  #wheel {
+    width: 100%;
+    height: 100%;
+    transition: transform 5s cubic-bezier(0.17, 0.67, 0.21, 1);
+    transform-origin: center center;
+    border-radius: 50%;
+    box-shadow: 0 10px 30px rgba(120,60,20,.35), inset 0 0 0 8px #fff, inset 0 0 0 9px #c0392b;
+  }
+  .btn {
+    margin-top: 28px;
+    padding: 14px 48px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #8b2818, 0 8px 18px rgba(0,0,0,.2);
+    transition: all .15s;
+    letter-spacing: 4px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8b2818, 0 4px 8px rgba(0,0,0,.2); }
+  .btn:disabled { background: #bbb; box-shadow: 0 6px 0 #888; cursor: not-allowed; }
+  .result {
+    margin-top: 24px;
+    padding: 18px 24px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(120,60,20,.15);
+    min-height: 80px;
+    width: min(90vw, 420px);
+    text-align: center;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .4s, transform .4s;
+  }
+  .result.show { opacity: 1; transform: translateY(0); }
+  .result .dish { font-size: 26px; font-weight: bold; color: #c0392b; margin-bottom: 6px; }
+  .result .tip { font-size: 14px; color: #6b4226; line-height: 1.6; }
+  .result .tag { display:inline-block; margin-top:8px; font-size:12px; color:#fff; background:#e67e22; padding:3px 10px; border-radius:10px; }
+  .footer { margin-top: 20px; font-size: 12px; color: #a0613a; }
+</style>
+</head>
+<body>
+  <h1>今 晚 吃 什 么</h1>
+  <div class="subtitle">抖音热门 · 简单快手菜 · 转到哪道吃哪道</div>
+
+  <div class="stage">
+    <div class="pointer"></div>
+    <svg id="wheel" viewBox="0 0 400 400"></svg>
+  </div>
+
+  <button class="btn" id="spinBtn">开 始 转</button>
+
+  <div class="result" id="result">
+    <div class="dish"></div>
+    <div class="tip"></div>
+    <div class="tag"></div>
+  </div>
+
+  <div class="footer">转盘菜品来源：抖音热门家常菜合集 · 一道菜搞定今晚</div>
+
+<script>
+  // 抖音热门快手菜（简单易做，10-15 分钟）
+  const dishes = [
+    { name: "番茄炒蛋", tip: "鸡蛋先炒散盛出，番茄炒出沙再回锅，加点糖更鲜。", tag: "国民第一快手菜" },
+    { name: "酸辣土豆丝", tip: "土豆切丝泡水去淀粉，热油爆香花椒辣椒，大火快炒断生即可。", tag: "下饭神器" },
+    { name: "葱花鸡蛋羹", tip: "1蛋加1.5倍温水过筛，盖膜蒸10分钟，撒葱花淋酱油。", tag: "嫩滑0失败" },
+    { name: "蒜蓉西兰花", tip: "西兰花焯水30秒，蒜末爆香快炒，加少许盐和蚝油出锅。", tag: "减脂首选" },
+    { name: "蛋炒饭", tip: "隔夜饭抓散，蛋液先拌饭再下锅，粒粒金黄，葱花最后撒。", tag: "清冰箱救星" },
+    { name: "葱油拌面", tip: "葱白葱段炸焦黄，加酱油糖调汁，浇在煮熟的面上一拌。", tag: "5分钟搞定" },
+    { name: "蒜薹炒肉", tip: "肉丝提前腌生抽淀粉，蒜薹焯水更脆，大火快炒断生即可。", tag: "下饭王炸" },
+    { name: "麻婆豆腐", tip: "豆腐焯水去腥，肉末炒出油，加豆瓣酱花椒粉收汁勾芡。", tag: "麻辣鲜香" },
+    { name: "醋溜白菜", tip: "白菜帮片薄，热油爆香干辣椒，大火翻炒加醋糖盐出锅。", tag: "酸脆爽口" },
+    { name: "韭菜炒鸡蛋", tip: "鸡蛋炒散盛出，韭菜大火快炒10秒回锅，盐调味立刻出锅。", tag: "春日限定" },
+    { name: "番茄鸡蛋面", tip: "番茄炒出沙加水煮开，下挂面，淋蛋花撒葱花，一锅出。", tag: "汤面合一" },
+    { name: "香煎鸡胸肉", tip: "鸡胸切片腌盐黑椒淀粉15分钟，少油中火两面煎金黄切片。", tag: "高蛋白低脂" }
+  ];
+
+  const colors = [
+    "#FFB347","#FF8C42","#FF6F61","#FFADAD","#FFD93D","#FCB1B1",
+    "#FFA07A","#FF7E5F","#F4A261","#E76F51","#FFB4A2","#FFC8A2"
+  ];
+
+  const wheel = document.getElementById('wheel');
+  const spinBtn = document.getElementById('spinBtn');
+  const result = document.getElementById('result');
+  const N = dishes.length;
+  const anglePer = 360 / N;
+  const cx = 200, cy = 200, R = 200;
+
+  // 画扇形 + 文字
+  let svgContent = '';
+  for (let i = 0; i < N; i++) {
+    const start = i * anglePer - 90 - anglePer / 2; // 让第一格顶端正对指针
+    const end = start + anglePer;
+    const sRad = start * Math.PI / 180;
+    const eRad = end * Math.PI / 180;
+    const x1 = cx + R * Math.cos(sRad);
+    const y1 = cy + R * Math.sin(sRad);
+    const x2 = cx + R * Math.cos(eRad);
+    const y2 = cy + R * Math.sin(eRad);
+    const large = anglePer > 180 ? 1 : 0;
+    svgContent += `<path d="M${cx},${cy} L${x1},${y1} A${R},${R} 0 ${large} 1 ${x2},${y2} Z" fill="${colors[i]}" stroke="#fff" stroke-width="2"/>`;
+    // 文字位置（扇形中线）
+    const mid = (start + end) / 2;
+    const tRad = mid * Math.PI / 180;
+    const tx = cx + (R * 0.62) * Math.cos(tRad);
+    const ty = cy + (R * 0.62) * Math.sin(tRad);
+    const rotate = mid + 90; // 文字沿径向
+    svgContent += `<text x="${tx}" y="${ty}" fill="#fff" font-size="15" font-weight="bold" text-anchor="middle" dominant-baseline="middle" transform="rotate(${rotate} ${tx} ${ty})">${dishes[i].name}</text>`;
+  }
+  // 中心圆
+  svgContent += `<circle cx="${cx}" cy="${cy}" r="28" fill="#fff" stroke="#c0392b" stroke-width="3"/>`;
+  svgContent += `<text x="${cx}" y="${cy}" fill="#c0392b" font-size="18" font-weight="bold" text-anchor="middle" dominant-baseline="middle">吃</text>`;
+  wheel.innerHTML = svgContent;
+
+  let currentRotation = 0;
+  let spinning = false;
+
+  spinBtn.addEventListener('click', () => {
+    if (spinning) return;
+    spinning = true;
+    spinBtn.disabled = true;
+    result.classList.remove('show');
+
+    // 随机选中一道菜
+    const idx = Math.floor(Math.random() * N);
+    // 让选中扇形转到指针（顶部 0°）位置
+    // 扇形 i 的中心角度（相对初始 -90 偏移后）= i * anglePer
+    // 需要旋转使该扇形中心对齐 0°（顶部）
+    const targetAngle = - (idx * anglePer); // 让该扇形转到顶部
+    // 加上若干整圈，保证向前转得足够多
+    const fullSpins = 5 + Math.floor(Math.random() * 3); // 5-7 圈
+    // 加随机小偏移让指针落在扇形内不同位置
+    const jitter = (Math.random() - 0.5) * (anglePer * 0.6);
+    const newRotation = currentRotation + fullSpins * 360 + (targetAngle - (currentRotation % 360)) + jitter;
+    currentRotation = newRotation;
+    wheel.style.transform = `rotate(${newRotation}deg)`;
+
+    setTimeout(() => {
+      spinning = false;
+      spinBtn.disabled = false;
+      const d = dishes[idx];
+      result.querySelector('.dish').textContent = '今晚就吃：' + d.name;
+      result.querySelector('.tip').textContent = d.tip;
+      result.querySelector('.tag').textContent = d.tag;
+      result.classList.add('show');
+    }, 5200);
+  });
+</script>
+</body>
+</html>
