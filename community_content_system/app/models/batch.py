@@ -82,5 +82,11 @@ class BatchItem(Base):
     num_comments_snapshot: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     verdict_snapshot: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
 
+    # CSV/Excel 导入时,直接存原始行数据(JSON),跳过 fetch_post
+    # 字段: subreddit/title/selftext/score/num_comments/created_utc/author/url/comments_text
+    raw_payload: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    # 标记缺失字段(便于报告"数据完整度")
+    missing_fields: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     processed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)

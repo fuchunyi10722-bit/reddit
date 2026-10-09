@@ -24,7 +24,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel, Field
 
 from .database import init_db
@@ -462,6 +462,51 @@ def batch_import(req: BatchImportRequest):
         }
     except ValueError as e:
         raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
+@app.post("/batch/import/csv")
+async def batch_import_csv(
+    file: UploadFile = File(...),
+    name: str = Form(""),
+    delimiter: str = Form(","),
+):
+    """从 CSV 文件批量导入已有帖子数据(不依赖 Reddit API)。
+
+    支持字段别名(列名兼容):
+    - url / link / permalink
+    - subreddit / community / sub
+    - title / subject
+    - selftext / body / text / content
+    - score / ups / upvotes
+    - num_comments / comments
+    - created_utc / created_at / published_at / date
+    - author / user
+    - comments_text / top_comments (评论内容,可选)
+
+    允许部分字段缺失,会标记到 missing_fields。
+    CSV 路径不调 fetch_post,直接用已有数据构造 PostDTO。
+
+    delimiter 支持 "\\t"(制表符)用于 TSV。
+    """
+    try:
+        content = (await file.read()).decode("utf-8-sig")  # 兼容 BOM
+        job = batch_processor.create_batch_from_csv(
+            name=name, csv_content=content, delimiter=delimiter
+        )
+        return {
+            "job_id": job.id,
+            "name": job.name,
+            "total": job.total_count,
+            "status": job.status,
+            "source": "csv_import",
+            "created_at": job.created_at.isoformat(),
+        }
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except UnicodeDecodeError as e:
+        raise HTTPException(400, f"文件编码错误(需 UTF-8): {e}")
     except Exception as e:
         raise HTTPException(500, str(e))
 

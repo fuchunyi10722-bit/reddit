@@ -110,6 +110,131 @@ def create_batch(name: str, urls: list[str]) -> BatchJob:
 
 
 # ============================================================
+# CSV/Excel 批量导入(不依赖 Reddit API)
+# ============================================================
+# 字段别名映射:把用户可能用的列名归一化为标准字段
+_FIELD_ALIASES = {
+    "url": ["url", "link", "permalink", "post_url", "reddit_url"],
+    "subreddit": ["subreddit", "community", "sub", "sub_name", "reddit"],
+    "title": ["title", "subject", "post_title"],
+    "selftext": ["selftext", "body", "text", "content", "post_body", "正文", "内容"],
+    "score": ["score", "ups", "upvotes"],
+    "num_comments": ["num_comments", "comments", "comment_count", "评论数"],
+    "created_utc": ["created_utc", "created_at", "published_at", "date", "发布时间", "post_date"],
+    "author": ["author", "user", "poster", "作者"],
+    "comments_text": ["comments_text", "top_comments", "comment_text", "comments_content", "评论"],
+}
+
+
+def _normalize_csv_row(row: dict) -> tuple[dict, list[str]]:
+    """把一行 CSV 字典归一化为标准字段 + 标记缺失字段。
+
+    返回 (normalized_dict, missing_fields)。
+    """
+    # 构建反向查找:任意别名 → 标准字段
+    alias_to_std = {}
+    for std, aliases in _FIELD_ALIASES.items():
+        for a in aliases:
+            alias_to_std[a.lower()] = std
+
+    normalized = {}
+    for k, v in row.items():
+        if v is None:
+            continue
+        v_str = str(v).strip() if not isinstance(v, str) else v.strip()
+        if not v_str:
+            continue
+        std = alias_to_std.get(k.lower().strip())
+        if std:
+            # 数值字段尝试转换
+            if std in ("score", "num_comments"):
+                try:
+                    normalized[std] = int(float(v_str))
+                except ValueError:
+                    pass
+            else:
+                normalized[std] = v_str
+
+    # 标记缺失的关键字段
+    missing = []
+    for required in ("title", "selftext"):
+        if not normalized.get(required):
+            missing.append(required)
+    # subreddit 缺失会严重影响社区差异分析,也标记
+    if not normalized.get("subreddit"):
+        missing.append("subreddit")
+
+    return normalized, missing
+
+
+def create_batch_from_csv(
+    name: str,
+    csv_content: str,
+    has_header: bool = True,
+    delimiter: str = ",",
+) -> BatchJob:
+    """从 CSV 文本创建批量任务,跳过 Reddit API 抓取。
+
+    每行解析为 raw_payload 存入 BatchItem,_process_one 时跳过 fetch_post。
+    支持字段别名(见 _FIELD_ALIASES),允许部分字段缺失(标记到 missing_fields)。
+
+    Args:
+        name: 任务名
+        csv_content: CSV 文本(UTF-8)
+        has_header: 第一行是否为表头(默认 True)
+        delimiter: 分隔符(默认逗号,支持 \\t 制表符)
+    """
+    if not csv_content.strip():
+        raise ValueError("csv_content 不能为空")
+
+    # 制表符转义
+    if delimiter == "\\t":
+        delimiter = "\t"
+
+    reader = csv.DictReader(io.StringIO(csv_content), delimiter=delimiter)
+    if not reader.fieldnames:
+        raise ValueError("CSV 无有效表头")
+
+    rows = list(reader)
+    if not rows:
+        raise ValueError("CSV 无数据行")
+
+    with get_session() as s:
+        job = BatchJob(name=name or f"csv-batch-{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}")
+        job.total_count = len(rows)
+        s.add(job)
+        s.flush()
+
+        seen_keys: set[str] = set()
+        for row in rows:
+            normalized, missing = _normalize_csv_row(row)
+            url = normalized.get("url", "")
+            sub, post_id = parse_url(url) if url else (None, "")
+
+            # 同批去重 key: post_id 优先,其次 url,再次 title
+            key = post_id or url or normalized.get("title", "")
+
+            item = BatchItem(
+                batch_id=job.id,
+                source_url=url or f"csv-row-{len(seen_keys)+1}",
+                source_post_id=post_id or None,
+                subreddit=normalized.get("subreddit"),
+                status="pending",
+                raw_payload=normalized,
+                missing_fields=missing if missing else None,
+            )
+            if key in seen_keys:
+                item.status = "skipped_duplicate"
+                item.error_message = "duplicate in same batch"
+            else:
+                seen_keys.add(key)
+            # 即使缺失关键字段也入库,让 _process_one 决定能否继续
+            s.add(item)
+        s.flush()
+        return job
+
+
+# ============================================================
 # 批量处理主流程
 # ============================================================
 def process_batch(
@@ -165,26 +290,48 @@ def _process_one(
     use_llm: bool,
     skip_existing: bool,
 ) -> None:
-    """处理单个 BatchItem:抓取 → 入库 → 分层 → 标签 → 分析 → 回填 → 复盘。"""
-    # 1. 抓取
-    try:
-        post_dto, comment_dtos = adapter.fetch_post(item.source_url)
-    except FileNotFoundError as e:
-        _mark_failed(item, f"fixture 不存在或帖子不存在: {e}", "fetch")
-        return
-    except Exception as e:
-        _mark_failed(item, f"抓取失败: {e}", "fetch")
-        return
+    """处理单个 BatchItem:抓取 → 入库 → 分层 → 标签 → 分析 → 回填 → 复盘。
+
+    若 item.raw_payload 存在(CSV 导入路径),跳过 fetch_post,
+    直接用 CSV 数据构造 PostDTO 内存对象。
+    """
+    # 1. 获取内容:CSV raw_payload 优先,否则 adapter.fetch_post
+    if item.raw_payload:
+        # CSV 路径:不依赖 Reddit API,直接用已有数据
+        payload = item.raw_payload
+        # 标题或正文缺失则无法分析
+        if not payload.get("title") and not payload.get("selftext"):
+            _mark_failed(item, "CSV 缺失 title 和 selftext,无法分析", "fetch")
+            return
+        # 构造 PostDTO 内存对象(不落 RawPost,直接给 ingest_raw_post)
+        post_dto = _build_post_dto_from_payload(payload, item)
+        comment_dtos = []  # CSV 评论暂不结构化入库,仅 raw_payload 存档
+        adapter_name = "csv_import"  # 覆盖 adapter 名,区分来源
+    else:
+        # URL 路径:走 adapter.fetch_post
+        try:
+            post_dto, comment_dtos = adapter.fetch_post(item.source_url)
+        except FileNotFoundError as e:
+            _mark_failed(item, f"fixture 不存在或帖子不存在: {e}", "fetch")
+            return
+        except Exception as e:
+            _mark_failed(item, f"抓取失败(可能 Reddit API 未授权): {e}", "fetch")
+            return
 
     item.subreddit = post_dto.subreddit
-    item.source_post_id = post_dto.source_post_id
+    if post_dto.source_post_id:
+        item.source_post_id = post_dto.source_post_id
 
     # 2. 入库(去重:若已有 ReferenceItem 直接复用,但仍继续后续 analyze 步骤)
+    #    注意:CSV 路径 adapter_name="csv_import",但 existing 查询按 source_post_id
+    #    跨 adapter 查找(同一帖子可能被 file/reddit/csv 多次导入)
     with get_session() as s:
-        existing = s.query(ReferenceItem).filter_by(
-            source_post_id=post_dto.source_post_id,
-            source_adapter=adapter_name,
-        ).first()
+        if post_dto.source_post_id:
+            existing = s.query(ReferenceItem).filter_by(
+                source_post_id=post_dto.source_post_id,
+            ).first()
+        else:
+            existing = None
 
     if existing and skip_existing:
         # 已存在,不重复入库,但后续 analyze/record/review 仍要执行
@@ -296,6 +443,70 @@ def _mark_failed(item: BatchItem, message: str, stage: str) -> None:
     item.processed_at = datetime.utcnow()
 
 
+def _parse_created_utc(value) -> float:
+    """把 created_utc 字段(可能是 ISO 字符串、unix 秒、unix 毫秒)统一为 unix 秒 float。"""
+    if value is None:
+        return 0.0
+    if isinstance(value, (int, float)):
+        # 毫秒判定:> 1e11 视为毫秒
+        v = float(value)
+        return v / 1000.0 if v > 1e11 else v
+    s = str(value).strip()
+    if not s:
+        return 0.0
+    # 尝试数字
+    try:
+        v = float(s)
+        return v / 1000.0 if v > 1e11 else v
+    except ValueError:
+        pass
+    # 尝试 ISO 字符串
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+        try:
+            from datetime import datetime as _dt
+            return _dt.strptime(s[:len(fmt.replace("%", "x")) + 8], fmt).timestamp()
+        except ValueError:
+            continue
+    # 最后尝试 fromisoformat
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return 0.0
+
+
+def _build_post_dto_from_payload(payload: dict, item: BatchItem):
+    """从 CSV raw_payload 构造 RawPostDTO 内存对象(不依赖 adapter)。"""
+    from ..adapters.base import RawPostDTO
+
+    sub = payload.get("subreddit") or item.subreddit or "unknown"
+    post_id = item.source_post_id or f"t3_csv_{item.id[:8]}"
+    title = payload.get("title") or ""
+    selftext = payload.get("selftext") or ""
+
+    # 如果有评论文本,拼到 selftext 末尾供分析参考(标注来源)
+    comments_text = payload.get("comments_text")
+    if comments_text:
+        selftext = selftext + "\n\n[CSV 评论摘录]\n" + comments_text[:2000]
+
+    created_utc = _parse_created_utc(payload.get("created_utc"))
+
+    return RawPostDTO(
+        source_post_id=post_id,
+        subreddit=sub,
+        title=title,
+        selftext=selftext,
+        url=payload.get("url", ""),
+        author=payload.get("author"),
+        created_utc=created_utc,
+        permalink=payload.get("url", ""),
+        ups=payload.get("score", 0) or 0,
+        score=payload.get("score", 0) or 0,
+        num_comments=payload.get("num_comments", 0) or 0,
+        content_form="text",
+        raw_payload=payload,  # 原始 CSV 行
+    )
+
+
 def _finalize_job(job_id: str) -> None:
     """完成时聚合统计。"""
     with get_session() as s:
@@ -376,7 +587,7 @@ def _build_summary_dict(items: list[BatchItem]) -> dict:
 
 
 def get_summary(job_id: str) -> dict:
-    """返回 job 的聚合统计 + 相关规律提示。"""
+    """返回 job 的聚合统计 + 相关规律提示 + 标签/tier 分布。"""
     with get_session() as s:
         job = s.query(BatchJob).filter_by(id=job_id).first()
         if not job:
@@ -385,11 +596,44 @@ def get_summary(job_id: str) -> dict:
 
         # 拉出关联规律(本批引用的 pattern_id)
         pattern_ids: set[str] = set()
+        # 标签分布(来自 ContentAnalysis)
+        topic_counter = Counter()
+        scenario_counter = Counter()
+        structure_counter = Counter()
+        product_visibility_counter = Counter()
+        search_value_counter = Counter()
+        tier_counter = Counter()
+        # 缺失字段统计
+        missing_counter = Counter()
+
         for it in items:
+            if it.missing_fields:
+                for f in it.missing_fields:
+                    missing_counter[f] += 1
             if it.snapshot_id:
                 snap = s.query(ContentAnalysisSnapshot).filter_by(id=it.snapshot_id).first()
                 if snap:
                     pattern_ids.update(snap.applied_pattern_ids or [])
+            if it.reference_item_id:
+                ca = s.query(ContentAnalysis).filter_by(
+                    reference_item_id=it.reference_item_id, is_current=True
+                ).first()
+                if ca:
+                    for t in (ca.topic_tags or []):
+                        topic_counter[t] += 1
+                    for t in (ca.scenario_tags or []):
+                        scenario_counter[t] += 1
+                    for t in (ca.structure_tags or []):
+                        structure_counter[t] += 1
+                    if ca.product_visibility:
+                        product_visibility_counter[ca.product_visibility] += 1
+                    if ca.search_value:
+                        search_value_counter[ca.search_value] += 1
+                pa = s.query(PerformanceAnalysis).filter_by(
+                    reference_item_id=it.reference_item_id, is_current=True
+                ).first()
+                if pa and pa.performance_tier:
+                    tier_counter[pa.performance_tier] += 1
 
         patterns_touched = []
         for pid in pattern_ids:
@@ -415,6 +659,15 @@ def get_summary(job_id: str) -> dict:
             "finished_at": job.finished_at.isoformat() if job.finished_at else None,
             "summary": job.summary or {},
             "patterns_touched": patterns_touched,
+            "tag_distribution": {
+                "topic": dict(topic_counter),
+                "scenario": dict(scenario_counter),
+                "structure": dict(structure_counter),
+                "product_visibility": dict(product_visibility_counter),
+                "search_value": dict(search_value_counter),
+            },
+            "tier_distribution": dict(tier_counter),
+            "missing_fields_distribution": dict(missing_counter),
         }
 
 
@@ -447,6 +700,10 @@ def get_item_detail(item_id: str) -> dict:
             raise ValueError(f"BatchItem 不存在: {item_id}")
 
         result: dict = _item_to_dict(item)
+
+        # CSV 原始行数据(若有)
+        if item.raw_payload:
+            result["raw_payload"] = item.raw_payload
 
         # 原始帖子事实
         if item.reference_item_id:
@@ -540,6 +797,8 @@ def _item_to_dict(item: BatchItem) -> dict:
         "score_snapshot": item.score_snapshot,
         "num_comments_snapshot": item.num_comments_snapshot,
         "verdict_snapshot": item.verdict_snapshot,
+        "missing_fields": item.missing_fields,
+        "has_raw_payload": item.raw_payload is not None,
         "processed_at": item.processed_at.isoformat() if item.processed_at else None,
     }
 
@@ -603,8 +862,16 @@ def export_items_csv(job_id: str) -> str:
 
 
 def export_summary_md(job_id: str) -> str:
-    """导出 job summary 为 Markdown 字符串。"""
+    """导出 job summary 为 Markdown 字符串,含业务洞察。
+
+    严格区分:
+    - 【客观事实】:来自 ActualResult 的真实互动数据(score/comments/tier)
+    - 【AI 推断】:来自 ContentAnalysis 的标签 + Snapshot 的 verdict
+    - 【规律】:来自 KnowledgePattern,标注 status(candidate/fire/supported/refuted)
+    """
     summary = get_summary(job_id)
+    items = list_items(job_id, limit=10000)
+
     lines = [
         f"# 批量分析报告: {summary['name']}",
         "",
@@ -615,45 +882,199 @@ def export_summary_md(job_id: str) -> str:
         f"- 创建: {summary['created_at']}",
         f"- 完成: {summary['finished_at']}",
         "",
-        "## 社区分布",
-        "",
     ]
+
+    # ---------- 数据完整度 ----------
+    lines += ["## 1. 数据完整度", ""]
+    mf = summary.get("missing_fields_distribution", {})
+    if mf:
+        lines.append("以下字段在部分帖子中缺失(影响分析覆盖度):")
+        for field, cnt in sorted(mf.items(), key=lambda x: -x[1]):
+            lines.append(f"- `{field}`: {cnt} 条缺失")
+    else:
+        lines.append("所有帖子关键字段完整。")
+    csv_count = sum(1 for it in items if it.get("has_raw_payload"))
+    url_count = sum(1 for it in items if not it.get("has_raw_payload") and it.get("source_url"))
+    lines.append("")
+    lines.append(f"- 数据来源: CSV 导入 {csv_count} 条, URL 抓取 {url_count} 条")
+
+    # ---------- 客观事实 ----------
+    lines += ["", "## 2. 客观事实(基于真实互动数据)", ""]
     sd = summary["summary"].get("subreddit_distribution", {})
     if sd:
+        lines.append("### 2.1 社区分布")
         for k, v in sorted(sd.items(), key=lambda x: -x[1]):
-            lines.append(f"- r/{k}: {v}")
-    else:
-        lines.append("(无数据)")
+            lines.append(f"- r/{k}: {v} 条")
 
-    lines += ["", "## Verdict 分布", ""]
+    lines += ["", "### 2.2 评分分布"]
+    sb = summary["summary"].get("score_buckets", {})
+    for k, v in sb.items():
+        lines.append(f"- {k}: {v}")
+
+    lines += ["", "### 2.3 评论数分布"]
+    cb = summary["summary"].get("comment_buckets", {})
+    for k, v in cb.items():
+        lines.append(f"- {k}: {v}")
+
+    td = summary.get("tier_distribution", {})
+    if td:
+        lines += ["", "### 2.4 表现分层(基于本批内评分基线)"]
+        for k, v in sorted(td.items(), key=lambda x: -x[1]):
+            lines.append(f"- {k}: {v}")
+
+    lines += ["", "### 2.5 高分 Top 3"]
+    for t in summary["summary"].get("top_by_score", []):
+        lines.append(f"- [{t['score']}] {t['title'][:80]} (r/{t['subreddit']}) [详情](item_id={t['item_id']})")
+
+    lines += ["", "### 2.6 低分 Top 3"]
+    for t in summary["summary"].get("low_by_score", []):
+        lines.append(f"- [{t['score']}] {t['title'][:80]} (r/{t['subreddit']}) [详情](item_id={t['item_id']})")
+
+    # ---------- AI 推断 ----------
+    lines += ["", "## 3. AI 推断(基于内容标签 + LLM 判断)", ""]
+    lines.append("> 注:以下为 AI 对内容的标签化判断,非客观事实。verdict 反映 AI 认为该内容是否适合该社区。")
+
+    lines += ["", "### 3.1 Verdict 分布"]
     vd = summary["summary"].get("verdict_distribution", {})
     if vd:
         for k, v in sorted(vd.items(), key=lambda x: -x[1]):
             lines.append(f"- {k}: {v}")
     else:
-        lines.append("(无数据)")
+        lines.append("(无 verdict 数据)")
 
-    lines += ["", "## 评分分布", ""]
-    sb = summary["summary"].get("score_buckets", {})
-    for k, v in sb.items():
-        lines.append(f"- {k}: {v}")
+    tg = summary.get("tag_distribution", {})
+    if tg.get("topic"):
+        lines += ["", "### 3.2 主题分布(topic_tags)"]
+        for k, v in sorted(tg["topic"].items(), key=lambda x: -x[1])[:8]:
+            lines.append(f"- {k}: {v}")
 
-    lines += ["", "## 评论数分布", ""]
-    cb = summary["summary"].get("comment_buckets", {})
-    for k, v in cb.items():
-        lines.append(f"- {k}: {v}")
+    if tg.get("structure"):
+        lines += ["", "### 3.3 内容结构分布"]
+        for k, v in sorted(tg["structure"].items(), key=lambda x: -x[1]):
+            lines.append(f"- {k}: {v}")
 
-    lines += ["", "## 高分 Top 3", ""]
-    for t in summary["summary"].get("top_by_score", []):
-        lines.append(f"- [{t['score']}] {t['title'][:80]} (r/{t['subreddit']})")
+    if tg.get("product_visibility"):
+        lines += ["", "### 3.4 产品露出程度分布"]
+        for k, v in sorted(tg["product_visibility"].items(), key=lambda x: -x[1]):
+            lines.append(f"- {k}: {v}")
 
-    lines += ["", "## 低分 Top 3", ""]
-    for t in summary["summary"].get("low_by_score", []):
-        lines.append(f"- [{t['score']}] {t['title'][:80]} (r/{t['subreddit']})")
+    if tg.get("search_value"):
+        lines += ["", "### 3.5 搜索价值分布"]
+        for k, v in sorted(tg["search_value"].items(), key=lambda x: -x[1]):
+            lines.append(f"- {k}: {v}")
 
-    lines += ["", "## 本批引用的规律", ""]
-    for p in summary.get("patterns_touched", []):
-        lines.append(f"- `{p['pattern_id']}` [{p['pattern_type']}/{p['status']}] "
-                     f"samples={p['sample_count']}: {p['description'][:120]}")
+    # ---------- 规律 ----------
+    lines += ["", "## 4. 本批引用的规律(KnowledgePattern)", ""]
+    pts = summary.get("patterns_touched", [])
+    if pts:
+        lines.append("> 注:规律状态标注其验证程度。`candidate`=待验证,`fire/supported`=多案例支持,`refuted`=被反例推翻。")
+        for p in pts:
+            lines.append(f"- `{p['pattern_id']}` [{p['pattern_type']}/{p['status']}] "
+                         f"samples={p['sample_count']}: {p['description'][:120]}")
+    else:
+        lines.append("(本批未引用已有规律,可能社区未初始化或 Retrieval 未召回)")
+
+    # ---------- 业务观察 ----------
+    lines += ["", "## 5. 业务观察(客观事实 + AI 推断的综合解读)", ""]
+
+    # 高分案例的共同特征
+    top_items = [it for it in items if it["status"] == "completed" and it.get("score_snapshot") and it["score_snapshot"] >= 50]
+    if top_items:
+        lines.append("### 5.1 高分案例特征(score>=50)")
+        for it in top_items[:3]:
+            lines.append(f"- [{it['score_snapshot']}] {it['title_snapshot'][:60]} (r/{it['subreddit']}) verdict={it['verdict_snapshot']}")
+
+    # 低分案例
+    low_items = [it for it in items if it["status"] == "completed" and it.get("score_snapshot") is not None and it["score_snapshot"] < 10]
+    if low_items:
+        lines += ["", "### 5.2 低分案例特征(score<10)"]
+        for it in low_items[:3]:
+            lines.append(f"- [{it['score_snapshot']}] {it['title_snapshot'][:60]} (r/{it['subreddit']}) verdict={it['verdict_snapshot']}")
+
+    # 产品植入观察
+    pv = tg.get("product_visibility", {})
+    if pv:
+        lines += ["", "### 5.3 产品植入观察"]
+        none_count = pv.get("none", 0)
+        subtle_count = pv.get("subtle", 0)
+        explicit_count = pv.get("explicit", 0)
+        promo_count = pv.get("promotional", 0)
+        total_labeled = none_count + subtle_count + explicit_count + promo_count
+        if total_labeled > 0:
+            lines.append(f"- 无产品露出(none): {none_count} ({none_count*100//total_labeled}%)")
+            lines.append(f"- 隐性植入(subtle): {subtle_count} ({subtle_count*100//total_labeled}%)")
+            lines.append(f"- 显性植入(explicit): {explicit_count} ({explicit_count*100//total_labeled}%)")
+            lines.append(f"- 促销型(promotional): {promo_count} ({promo_count*100//total_labeled}%)")
+            if explicit_count > 0 or promo_count > 0:
+                lines.append("- **观察**:存在显性/促销型产品露出,需结合其 verdict 和实际 score 判断社区容忍度")
+            if subtle_count > explicit_count:
+                lines.append("- **观察**:隐性植入多于显性,符合 Reddit 社区反感硬广的一般规律")
+
+    # 社区差异
+    if len(sd) > 1:
+        lines += ["", "### 5.4 社区差异"]
+        lines.append("不同社区的内容表现存在差异(基于客观评分 + AI verdict):")
+        for sub, cnt in sorted(sd.items(), key=lambda x: -x[1]):
+            sub_items = [it for it in items if it["subreddit"] == sub and it["status"] == "completed"]
+            if sub_items:
+                scores = [it["score_snapshot"] or 0 for it in sub_items]
+                avg = sum(scores) / len(scores) if scores else 0
+                verdicts = [it["verdict_snapshot"] for it in sub_items if it["verdict_snapshot"]]
+                lines.append(f"- r/{sub}: {cnt} 条, 平均分 {avg:.1f}, verdict 分布 {verdicts}")
+
+    # ---------- NIIMBOT 建议 ----------
+    lines += ["", "## 6. NIIMBOT 后续 Reddit 内容规划建议", ""]
+    lines.append("> 以下建议基于本批数据的客观事实 + AI 推断,**非定论**,需结合更多样本验证。")
+    lines.append("")
+
+    suggestions = []
+    # 规则 1: 高分案例的结构特征
+    if top_items:
+        structures_of_top = []
+        for it in top_items:
+            # 需要从 ContentAnalysis 获取 structure,但 item 上没有,用 verdict 代替
+            if it.get("verdict_snapshot") == "fit":
+                structures_of_top.append("fit")
+        if structures_of_top:
+            suggestions.append("高分帖子中存在 AI 判为 fit 的内容,可作为后续内容参考方向")
+
+    # 规则 2: 显性植入若表现差
+    if pv.get("explicit", 0) > 0:
+        explicit_low = [it for it in items if it["status"] == "completed"
+                        and it.get("score_snapshot") is not None
+                        and it["score_snapshot"] < 10]
+        if explicit_low:
+            suggestions.append("存在显性植入且评分较低的帖子,建议后续内容降低品牌露出程度,优先经验分享/提问型")
+
+    # 规则 3: 社区差异
+    if len(sd) > 1:
+        suggestions.append("不同社区对内容的接受度不同,后续投放需按社区定制,而非一套内容通用")
+
+    # 规则 4: 缺失字段提醒
+    if mf.get("subreddit", 0) > 0:
+        suggestions.append(f"有 {mf['subreddit']} 条帖子缺失 subreddit 字段,无法做社区差异分析,后续采集需补齐")
+
+    # 规则 5: 提问型/经验型
+    if tg.get("structure"):
+        st = tg["structure"]
+        if st.get("question", 0) > 0 or st.get("experience", 0) > 0:
+            suggestions.append("本批含提问型/经验型内容,这两类在 Reddit 通常接受度较高,可作为 NIIMBOT 后续内容的主结构方向")
+
+    if not suggestions:
+        suggestions.append("数据不足,无法给出明确建议。建议补充更多样本(目标 20+ 条)后重新分析。")
+
+    for i, sug in enumerate(suggestions, 1):
+        lines.append(f"{i}. {sug}")
+
+    # ---------- 免责声明 ----------
+    lines += ["", "---", "",
+              "**免责声明**:",
+              "- 客观事实部分(评分/评论数/tier)来自导入数据,如实反映历史互动表现",
+              "- AI 推断部分(verdict/标签)由 LLM 生成,反映模型对内容的判断,不等于客观正确",
+              "- 规律部分来自已有 KnowledgePattern,其状态反映多案例验证程度,单条结果不改变规律状态",
+              "- 历史互动数据不能直接证明 AI 事前预测准确;单条案例不能直接定性为普遍规律",
+              "- 所有案例可通过 `GET /batch/items/{item_id}` 查看原始数据与分析详情",
+              "- 明细数据可通过 `GET /batch/{job_id}/export?format=csv` 导出",
+             ]
 
     return "\n".join(lines)

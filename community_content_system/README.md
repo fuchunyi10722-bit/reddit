@@ -252,7 +252,8 @@ POST /content/{snapshot_id}/review
 | `GET /content/{id}/snapshot` | 查看快照 |
 | `PUT /human/verdict/{snapshot_id}` | 人工修正判断 |
 | `PUT /human/label/{item_id}` | 人工修正标签 |
-| `POST /batch/import` | 批量导入 Reddit URL |
+| `POST /batch/import` | 批量导入 Reddit URL(需凭据) |
+| `POST /batch/import/csv` | 批量导入 CSV(不依赖 Reddit API) |
 | `POST /batch/{job_id}/process` | 触发批量处理 |
 | `POST /batch/{job_id}/retry` | 重试失败项 |
 | `GET /batch` | 列出批量任务 |
@@ -272,7 +273,40 @@ POST /content/{snapshot_id}/review
 
 批量分析依赖社区画像 + 规律,需先调用 `POST /community/init` 初始化目标社区。同社区只需初始化一次。
 
-### Step 1:批量导入 URL
+### Step 1:批量导入
+
+支持两种导入方式:
+
+#### 方式 A:CSV 文件导入(不依赖 Reddit API,推荐)
+
+已有历史帖数据(标题/正文/评分等)直接导入,无需 Reddit 凭据:
+
+```http
+POST /batch/import/csv
+Content-Type: multipart/form-data
+
+file: <CSV 文件>
+name: 首批历史帖
+delimiter: ,
+```
+
+CSV 支持字段别名(列名兼容):
+
+| 标准字段 | 兼容列名 |
+|---|---|
+| url | url, link, permalink, post_url |
+| subreddit | subreddit, community, sub |
+| title | title, subject |
+| selftext | selftext, body, text, content, 正文 |
+| score | score, ups, upvotes |
+| num_comments | num_comments, comments, 评论数 |
+| created_utc | created_utc, created_at, published_at, date, 发布时间 |
+| author | author, user |
+| comments_text | comments_text, top_comments, 评论 |
+
+允许部分字段缺失,会标记到 `missing_fields`。TSV 文件用 `delimiter=\t`。
+
+#### 方式 B:URL 导入(需要 Reddit 凭据)
 
 ```http
 POST /batch/import
@@ -282,18 +316,14 @@ Content-Type: application/json
   "name": "首批历史帖",
   "urls": [
     "https://www.reddit.com/r/learnprogramming/comments/abc/title",
-    "https://www.reddit.com/r/organization/comments/def/title2",
     "t3_xyz"
   ]
 }
 ```
 
-支持的 URL 格式:
-- `https://www.reddit.com/r/{subreddit}/comments/{post_id}/...`
-- `https://redd.it/{post_id}`
-- `t3_{post_id}`
+支持的 URL 格式:`https://www.reddit.com/r/{sub}/comments/{id}/...` / `https://redd.it/{id}` / `t3_{id}`。
 
-返回 `job_id`,所有 URL 落库为 pending(同批内重复 URL 自动标记 `skipped_duplicate`)。
+返回 `job_id`,同批内重复自动标记 `skipped_duplicate`。
 
 ### Step 2:触发批量处理
 
