@@ -28,12 +28,17 @@ def record_result(
     num_comments: Optional[int] = None,
     is_deleted: bool = False,
     is_edited: bool = False,
-    published_at: Optional[datetime] = None,
+    published_at: Optional[datetime | str] = None,
     source_post_id: Optional[str] = None,
     result_source: str = "manual",  # auto|screenshot|url|manual
     result_assets: Optional[list] = None,
 ) -> ActualResult:
-    """录入实际发布结果。"""
+    """录入实际发布结果。
+
+    published_at 兼容 ISO 字符串或 datetime 对象,内部统一转 datetime。
+    """
+    if isinstance(published_at, str):
+        published_at = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
     with get_session() as s:
         result = ActualResult(
             snapshot_id=snapshot_id,

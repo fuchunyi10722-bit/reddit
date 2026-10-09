@@ -193,7 +193,7 @@ PUT /human/label/{reference_item_id}
 
 系统**不代发**。用户根据 AI 建议(或自行决定)修改内容,手动登录 Reddit 发布。**记录**:
 - Reddit post URL 或 `t3_xxx`
-- 实际发布版 title / body(用于后续归因,可存到 `result_assets` 引用的文档)
+- 实际发布版 title / body(用于后续归因,可在外部文档存,V1 API 未暴露 result_assets 字段)
 
 ### Step 6:发布后回填结果
 
@@ -215,7 +215,11 @@ Content-Type: application/json
 }
 ```
 
-`result_source` 支持 `manual` / `auto` / `screenshot` / `url`,V1 用 `manual`。`result_assets` 可放采纳清单文档 URL / 截图路径(可选,用于后续归因)。
+`result_source` 支持 `manual` / `auto` / `screenshot` / `url`,V1 用 `manual`。
+
+注意:
+- `published_at` 支持 ISO 字符串(`2026-09-23T10:00:00` 或带 Z 后缀的 `2026-09-23T10:00:00Z`),内部自动转 datetime
+- V1 API 未暴露 `result_assets` 字段;若要记录"采纳清单"等归因文档,请存到外部文档,V2 再考虑结构化
 
 ### Step 7:复盘(对照判断 vs 实际)
 
