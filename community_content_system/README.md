@@ -252,16 +252,126 @@ POST /content/{snapshot_id}/review
 | `GET /content/{id}/snapshot` | 查看快照 |
 | `PUT /human/verdict/{snapshot_id}` | 人工修正判断 |
 | `PUT /human/label/{item_id}` | 人工修正标签 |
-| `POST /human/retrieval/filter` | 人工过滤召回案例 |
-| `POST /human/pattern/{id}/confirm` | 人工确认规律验证 |
-| `PUT /human/pattern/{id}/status` | 人工覆盖规律状态 |
-| `GET /llm/last-call-log` | 查看最近 LLM 调用日志 |
-
-全部可从 `/docs` 直接调用。
+| `POST /batch/import` | 批量导入 Reddit URL |
+| `POST /batch/{job_id}/process` | 触发批量处理 |
+| `POST /batch/{job_id}/retry` | 重试失败项 |
+| `GET /batch` | 列出批量任务 |
+| `GET /batch/{job_id}` | 查看批量任务详情 + items |
+| `GET /batch/{job_id}/items` | 按 status/subreddit 过滤 items |
+| `GET /batch/items/{item_id}` | 单 item 详情(原帖 + 标签 + snapshot + review) |
+| `GET /batch/{job_id}/summary` | 聚合统计 + 引用的规律 |
+| `GET /batch/{job_id}/export?format=csv|md` | 导出明细(CSV)或汇总(MD) |
 
 ---
 
-## 5. 数据流核心模型
+## 5. 批量历史内容分析流程
+
+适用于一次性分析多篇历史 Reddit 帖子的场景(规模 ≤ 100)。
+
+### Step 0:前置准备(若社区未初始化)
+
+批量分析依赖社区画像 + 规律,需先调用 `POST /community/init` 初始化目标社区。同社区只需初始化一次。
+
+### Step 1:批量导入 URL
+
+```http
+POST /batch/import
+Content-Type: application/json
+
+{
+  "name": "首批历史帖",
+  "urls": [
+    "https://www.reddit.com/r/learnprogramming/comments/abc/title",
+    "https://www.reddit.com/r/organization/comments/def/title2",
+    "t3_xyz"
+  ]
+}
+```
+
+支持的 URL 格式:
+- `https://www.reddit.com/r/{subreddit}/comments/{post_id}/...`
+- `https://redd.it/{post_id}`
+- `t3_{post_id}`
+
+返回 `job_id`,所有 URL 落库为 pending(同批内重复 URL 自动标记 `skipped_duplicate`)。
+
+### Step 2:触发批量处理
+
+```http
+POST /batch/{job_id}/process
+Content-Type: application/json
+
+{
+  "use_llm": true,
+  "skip_existing": true
+}
+```
+
+每条 item 独立 try/except,流程:
+1. `adapter.fetch_post(url)` — 抓取帖子正文 + 评论 + 互动数据
+2. `parser.ingest_raw_post` — 落库 ReferenceItem(若已存在则复用,不重复入库)
+3. `performance.tier_items` — 统计分层(失败不阻断)
+4. `classifier.label_item` — AI 标签(若已有 current 标签则跳过)
+5. `content_analyzer.analyze_new_content` — AI 判断(verdict/issues/suggestions)
+6. `review_svc.record_result` — 用帖子自身的 ups/score/num_comments 回填为 ActualResult
+7. `review_svc.review_snapshot` — 复盘(AI 判断 vs 实际表现)
+
+单条失败标记为 `failed` + 记录 `error_stage` + `error_message`,不影响其他条。
+
+### Step 3:查看结果
+
+```http
+GET /batch/{job_id}
+```
+
+返回 `{summary: {...}, items: [...]}`。
+
+按状态/社区过滤:
+```http
+GET /batch/{job_id}/items?status=completed&subreddit=learnprogramming
+```
+
+单 item 详情(原帖 + 标签 + snapshot + actual_result + review 全套):
+```http
+GET /batch/items/{item_id}
+```
+
+### Step 4:聚合统计
+
+```http
+GET /batch/{job_id}/summary
+```
+
+返回:
+- subreddit_distribution / verdict_distribution
+- score_buckets / comment_buckets
+- top_by_score / low_by_score(高分/低分 Top 3)
+- patterns_touched(本批引用的 KnowledgePattern)
+
+### Step 5:导出
+
+```http
+GET /batch/{job_id}/export?format=csv    # 明细 CSV(Excel 友好,带 BOM)
+GET /batch/{job_id}/export?format=md     # 汇总 Markdown
+```
+
+### Step 6:重试失败项
+
+```http
+POST /batch/{job_id}/retry
+```
+
+把 failed 状态的 items 重置为 pending,再次调用 `POST /batch/{job_id}/process` 即可。
+
+### 沉淀说明
+
+批量分析产出的 ReferenceItem 会作为社区画像的一部分,被后续 `community_init` 或新内容 analyze 的 Retrieval 召回为 evidence。**本批不直接产出新 Pattern**——规律提炼仍由 `community_init` 阶段的 `pattern_miner.mine_patterns()` 完成,避免单批结果直接沉淀规律。如需重新提炼规律,可重新调用 `community_init`(会复用已有 ReferenceItem)。
+
+全部 API 都可从 `/docs` 直接调用。
+
+---
+
+## 6. 数据流核心模型
 
 | 模型 | 含义 |
 |---|---|
@@ -274,10 +384,12 @@ POST /content/{snapshot_id}/review
 | `ContentAnalysisSnapshot` | **发布前判断快照,immutable** |
 | `ActualResult` | 发布后实际表现(回填) |
 | `Review` | 复盘结果 |
+| `BatchJob` | 批量分析任务 |
+| `BatchItem` | 批量任务中的一条 URL 处理状态 |
 
 ---
 
-## 6. V1 已知限制
+## 7. V1 已知限制
 
 1. **沙箱无 Reddit 访问**:开发期用 `file` adapter + fixture,真实使用必须切 `reddit` adapter
 2. **沙箱无 Ollama**:沙箱默认 `mock` provider,真实使用必须本地装 Ollama + 拉 Qwen 模型
@@ -292,17 +404,18 @@ POST /content/{snapshot_id}/review
 
 ---
 
-## 7. V1 验证状态
+## 8. V1 验证状态
 
 - ✅ Phase 1 Step 1:organization 链路打通(沙箱 fixture)
 - ✅ Phase 2 Step 2:9 条跨社区对比,真实 Ollama+Qwen2.5:7b 能消费 Retrieval evidence 并产生差异化判断(9 条中 8 条 evidence 校验 100% 通过)
-- ⚠️ RedditAdapter 真机验证:沙箱无法访问 Reddit,需在能联网 Reddit 的机器上跑一次 `POST /community/init` 验证 PRAW 字段映射
+- ✅ Phase 3 批量分析:8 URL(6 valid + 1 dup + 1 not exist)端到端跑通,6 条 completed + 1 skipped_duplicate + 1 failed,verdict 分布合理(5 fit / 1 not_fit),CSV/MD 导出正常
+- ⚠️ RedditAdapter 真机验证:沙箱无法访问 Reddit,需在能联网 Reddit 的机器上跑一次 `POST /community/init` + `POST /batch/import` + `POST /batch/{job_id}/process` 验证 PRAW 字段映射
 
 详见 `/workspace/phase2_step2_validation_report.md`。
 
 ---
 
-## 8. V1 不做的事
+## 9. V1 不做的事
 
 - 前端 UI(用 Swagger)
 - 自动发帖

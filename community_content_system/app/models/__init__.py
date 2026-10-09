@@ -6,6 +6,7 @@ from .analysis import ContentAnalysis, PerformanceAnalysis
 from .knowledge import KnowledgePattern, CommunityProfile
 from .embedding import Embedding
 from .snapshot import ContentAnalysisSnapshot, ActualResult, Review
+from .batch import BatchJob, BatchItem
 
 __all__ = [
     "RawPost", "RawComment", "RawRules", "RawSubredditMeta",
@@ -14,4 +15,5 @@ __all__ = [
     "KnowledgePattern", "CommunityProfile",
     "Embedding",
     "ContentAnalysisSnapshot", "ActualResult", "Review",
+    "BatchJob", "BatchItem",
 ]

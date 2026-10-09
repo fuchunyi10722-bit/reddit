@@ -429,3 +429,145 @@ def get_last_llm_call_log():
         "classifier_last_call": _serialize(clf_log),
         "analyzer_last_call": _serialize(anr_log),
     }
+
+
+# ============================================================
+# Phase 3: 批量历史内容分析
+# ============================================================
+from .services import batch_processor
+from fastapi.responses import PlainTextResponse, Response
+
+
+class BatchImportRequest(BaseModel):
+    name: str = ""
+    urls: list[str]
+
+
+class BatchProcessRequest(BaseModel):
+    use_llm: bool = True
+    skip_existing: bool = True
+
+
+@app.post("/batch/import")
+def batch_import(req: BatchImportRequest):
+    """创建批量任务。URL 在 BatchItem 落库为 pending,等待 process 触发。"""
+    try:
+        job = batch_processor.create_batch(req.name, req.urls)
+        return {
+            "job_id": job.id,
+            "name": job.name,
+            "total": job.total_count,
+            "status": job.status,
+            "created_at": job.created_at.isoformat(),
+        }
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
+@app.post("/batch/{job_id}/process")
+def batch_process(job_id: str, req: BatchProcessRequest):
+    """触发批量处理。每条独立 try/except,单条失败不影响其他。"""
+    try:
+        job = batch_processor.process_batch(
+            job_id, use_llm=req.use_llm, skip_existing=req.skip_existing
+        )
+        return {
+            "job_id": job.id,
+            "status": job.status,
+            "total": job.total_count,
+            "success": job.success_count,
+            "failed": job.failed_count,
+            "skipped": job.skipped_count,
+            "finished_at": job.finished_at.isoformat() if job.finished_at else None,
+        }
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
+@app.post("/batch/{job_id}/retry")
+def batch_retry(job_id: str):
+    """重置 failed 的 items 为 pending,不立即处理,等待再次调用 process。"""
+    try:
+        n = batch_processor.retry_failed(job_id)
+        return {"job_id": job_id, "reset_count": n, "next_action": "POST /batch/{job_id}/process"}
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+
+@app.get("/batch")
+def list_batches(limit: int = 20):
+    """列出最近的批量任务。"""
+    return batch_processor.list_jobs(limit=limit)
+
+
+@app.get("/batch/{job_id}")
+def get_batch(job_id: str):
+    """查看 job 详情 + items 概览。"""
+    try:
+        summary = batch_processor.get_summary(job_id)
+        items = batch_processor.list_items(job_id, limit=1000)
+        return {"summary": summary, "items": items}
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+
+@app.get("/batch/{job_id}/items")
+def list_batch_items(
+    job_id: str,
+    status: Optional[str] = None,
+    subreddit: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+):
+    """按状态/社区过滤列出 items。"""
+    return batch_processor.list_items(
+        job_id, status=status, subreddit=subreddit, limit=limit, offset=offset
+    )
+
+
+@app.get("/batch/items/{item_id}")
+def get_batch_item(item_id: str):
+    """单 item 详情:原始帖子 + 标签 + snapshot + review + actual_result。"""
+    try:
+        return batch_processor.get_item_detail(item_id)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+
+@app.get("/batch/{job_id}/summary")
+def get_batch_summary(job_id: str):
+    """仅查看聚合统计 + 引用的规律。"""
+    try:
+        return batch_processor.get_summary(job_id)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+
+@app.get("/batch/{job_id}/export")
+def export_batch(job_id: str, format: str = "csv"):
+    """导出明细(CSV)或汇总报告(Markdown)。
+
+    - format=csv: 返回每条 item 的明细 CSV
+    - format=md: 返回 job 整体汇总 Markdown
+    """
+    try:
+        if format == "md":
+            content = batch_processor.export_summary_md(job_id)
+            return PlainTextResponse(content, media_type="text/markdown")
+        elif format == "csv":
+            content = batch_processor.export_items_csv(job_id)
+            return Response(
+                content=content.encode("utf-8-sig"),  # BOM 让 Excel 正确识别 UTF-8
+                media_type="text/csv",
+                headers={"Content-Disposition": f"attachment; filename=batch_{job_id}.csv"},
+            )
+        else:
+            raise HTTPException(400, "format 必须是 csv 或 md")
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+    except Exception as e:
+        raise HTTPException(500, str(e))
